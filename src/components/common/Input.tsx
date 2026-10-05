@@ -7,10 +7,29 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   helperText?: string;
   leftIcon?: React.ReactNode;
   isPassword?: boolean;
+  dark?: boolean;
+  labelRight?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, leftIcon, isPassword = false, type = 'text', id, required, style, disabled, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      leftIcon,
+      isPassword = false,
+      dark = false,
+      labelRight,
+      type = 'text',
+      id,
+      required,
+      style,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -18,24 +37,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const resolvedType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', width: '100%' }}>
         {label && (
-          <label
-            htmlFor={inputId}
+          <div
             style={{
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: 'var(--slate-700)',
+              color: dark ? '#ffffff' : 'var(--slate-700)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               fontFamily: 'var(--font-heading)'
             }}
           >
-            <span>
-              {label} {required && <span style={{ color: 'var(--danger-solid)' }}>*</span>}
-            </span>
-          </label>
+            <label htmlFor={inputId} style={{ cursor: 'pointer' }}>
+              {label} {required && <span style={{ color: dark ? '#f87171' : 'var(--danger-solid)' }}>*</span>}
+            </label>
+            {labelRight && <div>{labelRight}</div>}
+          </div>
         )}
 
         <div
@@ -43,12 +62,30 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            borderRadius: 'var(--radius-md)',
-            border: `1.5px solid ${error ? 'var(--danger-solid)' : isFocused ? 'var(--primary-600)' : 'var(--slate-200)'}`,
-            background: disabled ? 'var(--slate-100)' : '#ffffff',
+            borderRadius: '8px',
+            border: `1px solid ${
+              error
+                ? dark
+                  ? '#f87171'
+                  : 'var(--danger-solid)'
+                : isFocused
+                ? '#38bdf8'
+                : dark
+                ? 'rgba(255, 255, 255, 0.12)'
+                : 'var(--slate-200)'
+            }`,
+            background: disabled
+              ? dark
+                ? 'rgba(255, 255, 255, 0.04)'
+                : 'var(--slate-100)'
+              : dark
+              ? '#172138'
+              : '#ffffff',
             boxShadow: isFocused
               ? error
-                ? '0 0 0 3px rgba(239, 68, 68, 0.15)'
+                ? '0 0 0 3px rgba(239, 68, 68, 0.2)'
+                : dark
+                ? '0 0 0 3px rgba(56, 189, 248, 0.2)'
                 : '0 0 0 3px rgba(13, 148, 136, 0.15)'
               : 'none',
             transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
@@ -60,7 +97,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 paddingLeft: '12px',
                 display: 'flex',
                 alignItems: 'center',
-                color: error ? 'var(--danger-solid)' : isFocused ? 'var(--primary-600)' : 'var(--slate-400)',
+                color: error
+                  ? dark
+                    ? '#f87171'
+                    : 'var(--danger-solid)'
+                  : isFocused
+                  ? '#38bdf8'
+                  : dark
+                  ? '#94a3b8'
+                  : 'var(--slate-400)',
                 pointerEvents: 'none'
               }}
             >
@@ -86,15 +131,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             style={{
               flex: 1,
               width: '100%',
-              padding: '10px 14px',
+              padding: '11px 14px',
               paddingLeft: leftIcon ? '10px' : '14px',
               paddingRight: isPassword ? '42px' : '14px',
               fontSize: '0.9375rem',
-              color: 'var(--slate-800)',
+              color: dark ? '#ffffff' : 'var(--slate-800)',
               background: 'transparent',
               border: 'none',
               outline: 'none',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '8px',
               fontFamily: 'inherit',
               ...style
             }}
@@ -112,13 +157,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--slate-400)',
+                color: dark ? '#94a3b8' : 'var(--slate-400)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
                 padding: '6px',
                 borderRadius: 'var(--radius-sm)',
                 transition: 'color 0.15s ease'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--slate-700)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--slate-400)')}
+              onMouseEnter={(e) => (e.currentTarget.style.color = dark ? '#ffffff' : 'var(--slate-700)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = dark ? '#94a3b8' : 'var(--slate-400)')}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -131,7 +179,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
-              color: 'var(--danger-solid)',
+              color: dark ? '#f87171' : 'var(--danger-solid)',
               fontSize: '0.8125rem',
               fontWeight: 500
             }}
@@ -140,7 +188,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <span>{error}</span>
           </div>
         ) : helperText ? (
-          <span style={{ fontSize: '0.8125rem', color: 'var(--slate-500)' }}>{helperText}</span>
+          <span style={{ fontSize: '0.8125rem', color: dark ? '#94a3b8' : 'var(--slate-500)' }}>
+            {helperText}
+          </span>
         ) : null}
       </div>
     );

@@ -168,6 +168,7 @@ export const RegisterDoctorPage: React.FC = () => {
     <AuthLayout
       title="Join CareQ AI as a Doctor"
       subtitle="Expand your clinical reach with real-time AI triage and integrated patient care"
+      maxWidth="620px"
     >
       {/* Progress Step Header */}
       <div
