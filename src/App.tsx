@@ -1,122 +1,140 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RoleGuard } from './components/auth/RoleGuard';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Auth Pages
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPatientPage } from './pages/auth/RegisterPatientPage';
+import { RegisterDoctorPage } from './pages/auth/RegisterDoctorPage';
+import { VerifyOtpPage } from './pages/auth/VerifyOtpPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 
+// Dashboards
+import { PatientDashboard } from './pages/dashboards/PatientDashboard';
+import { DoctorDashboard } from './pages/dashboards/DoctorDashboard';
+import { AdminDashboard } from './pages/dashboards/AdminDashboard';
+
+// Error Pages
+import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
+
+// Root redirect handler based on authenticated user session
+const RootRedirect: React.FC = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner fullScreen message="Loading CareQ AI..." />;
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  switch (user.role) {
+    case 'doctor':
+      return <Navigate to="/doctor/dashboard" replace />;
+    case 'admin':
+      return <Navigate to="/admin/dashboard" replace />;
+    case 'patient':
+    default:
+      return <Navigate to="/patient/dashboard" replace />;
+  }
+};
+
+export function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Default Root Redirect */}
+          <Route path="/" element={<RootRedirect />} />
 
-      <div className="ticks"></div>
+          {/* Unified Authentication Routes */}
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register/patient" element={<RegisterPatientPage />} />
+          <Route path="/auth/register/doctor" element={<RegisterDoctorPage />} />
+          <Route path="/auth/verify" element={<VerifyOtpPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {/* Protected Patient Routes */}
+          <Route
+            path="/patient/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['patient']}>
+                  <PatientDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          {/* Any other /patient/* routes can be guarded similarly */}
+          <Route
+            path="/patient/*"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['patient']}>
+                  <PatientDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {/* Protected Doctor Routes */}
+          <Route
+            path="/doctor/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['doctor']}>
+                  <DoctorDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/*"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['doctor']}>
+                  <DoctorDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Admin Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 403 Forbidden & 404 Not Found */}
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
