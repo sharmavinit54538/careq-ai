@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   Star,
@@ -20,8 +21,16 @@ export const DoctorsView: React.FC<DoctorsViewProps> = ({
   onBookDoctor,
   onViewDoctorProfile
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const queryFromUrl = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(queryFromUrl);
   const [selectedSpecialization, setSelectedSpecialization] = useState('All');
+
+  useEffect(() => {
+    if (queryFromUrl) {
+      setSearchTerm(queryFromUrl);
+    }
+  }, [queryFromUrl]);
 
   const specializations = [
     'All',
@@ -47,27 +56,18 @@ export const DoctorsView: React.FC<DoctorsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            Find Healthcare Specialists
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Browse and connect with board-certified CareQ AI verified medical doctors.
-          </p>
-        </div>
-      </div>
-
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+            <Search className="h-4 w-4 text-slate-400" />
+          </div>
           <input
             type="text"
             placeholder="Search by doctor name, specialty, or clinic..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ paddingLeft: '2.5rem' }}
             className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
           />
         </div>

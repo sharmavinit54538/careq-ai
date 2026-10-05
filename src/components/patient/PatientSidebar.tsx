@@ -8,15 +8,17 @@ import {
   Pill,
   FileText,
   Heart,
-  Bot,
-  Bell,
   User,
   Settings,
   LogOut,
   X,
-  PanelLeft
+  PanelLeft,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { GeminiIcon } from '../common/GeminiIcon';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface PatientSidebarProps {
   mobileOpen?: boolean;
@@ -39,9 +41,10 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
   onCloseMobile,
   collapsed: externalCollapsed,
   onToggleCollapse,
-  unreadCount = 0
+  unreadCount: _unreadCount = 0
 }) => {
   const { logout, user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [avatarError, setAvatarError] = useState(false);
@@ -113,8 +116,7 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     { name: 'Prescriptions', path: '/patient/prescriptions', icon: Pill },
     { name: 'Medical Records', path: '/patient/medical-records', icon: FileText },
     { name: 'Health', path: '/patient/health', icon: Heart },
-    { name: 'CareQ AI Assistant', path: '/patient/ai-assistant', icon: Bot, isAi: true },
-    { name: 'Notifications', path: '/patient/notifications', icon: Bell, badge: unreadCount }
+    { name: 'QAI', path: '/patient/ai-assistant', icon: GeminiIcon, isAi: true }
   ];
 
   const renderSidebarContent = (collapsedState: boolean, isMobile: boolean) => (
@@ -365,6 +367,24 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
                 <Settings className="h-3.5 w-3.5 text-slate-500" />
                 <span>Settings</span>
               </NavLink>
+
+              <button
+                type="button"
+                onClick={() => toggleTheme()}
+                className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  {isDark ? (
+                    <Sun className="h-3.5 w-3.5 text-amber-500" />
+                  ) : (
+                    <Moon className="h-3.5 w-3.5 text-slate-500" />
+                  )}
+                  <span>{isDark ? 'Light Mode' : 'Night Mode'}</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  {isDark ? 'Dark' : 'Light'}
+                </span>
+              </button>
             </div>
 
             {/* Sign Out Action */}

@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* CareQ AI — Design System & Global Styles */
 
 
@@ -82,10 +84,10 @@
   --header-height: 72px;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
 }
 
 html, body {
@@ -164,3 +166,119 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--slate-400);
 }
+
+/* ==========================================================================
+   Night Mode (Dark Theme) System
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark, html.dark body {
+  background-color: #0b1120 !important;
+  color: #f1f5f9;
+}
+
+/* Header in Night Mode */
+html.dark header {
+  background-color: rgba(15, 23, 42, 0.92) !important;
+  border-color: #1e293b !important;
+  color: #f8fafc;
+}
+
+/* Sidebar in Night Mode */
+html.dark aside,
+html.dark .bg-white.text-slate-800 {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* White Cards, Panels, Modals in Night Mode */
+html.dark .bg-white {
+  background-color: #0f172a !important;
+  color: #f8fafc;
+}
+
+/* Slate Background Levels in Night Mode */
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/40,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/90 {
+  background-color: #1e293b !important;
+}
+
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/60 {
+  background-color: #334155 !important;
+}
+
+/* Borders in Night Mode */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark :where(.divide-slate-100 > :not(:last-child)) {
+  border-color: #1e293b !important;
+}
+
+/* Text Colors in Night Mode */
+html.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Form Inputs & Controls in Night Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Interactive States in Night Mode */
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
+}
+
+html.dark .hover\:text-slate-700:hover,
+html.dark .hover\:text-slate-800:hover,
+html.dark .hover\:text-slate-900:hover {
+  color: #ffffff !important;
+}
+
+/* Night Mode Scrollbars */
+html.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+

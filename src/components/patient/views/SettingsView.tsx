@@ -3,10 +3,15 @@ import {
   Bell,
   Lock,
   Globe,
-  CheckCircle2
+  CheckCircle2,
+  Sun,
+  Moon,
+  Sparkles
 } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext';
 
 export const SettingsView: React.FC = () => {
+  const { isDark, setTheme } = useTheme();
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [labAlerts, setLabAlerts] = useState(true);
@@ -24,7 +29,7 @@ export const SettingsView: React.FC = () => {
           Account & Portal Settings
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Manage your notification preferences, telehealth security settings, and communication options.
+          Manage your appearance theme, notification preferences, and telehealth security options.
         </p>
       </div>
 
@@ -34,6 +39,79 @@ export const SettingsView: React.FC = () => {
           <span>Preferences updated successfully.</span>
         </div>
       )}
+
+      {/* Appearance & Portal Theme Section */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+          <Sparkles className="h-5 w-5 text-teal-600" />
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Appearance & Theme
+            </h3>
+            <p className="text-xs text-slate-500">
+              Select between CareQ Clinical Light Mode and Eye-Comfort Night Mode.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          {/* Light Mode Card */}
+          <button
+            type="button"
+            onClick={() => setTheme('light')}
+            className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              !isDark
+                ? 'border-teal-500 bg-teal-50/50 ring-2 ring-teal-500/20 shadow-xs'
+                : 'border-slate-200 bg-slate-50 hover:bg-slate-100/60'
+            }`}
+          >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 shadow-xs">
+              <Sun className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-900">Light Mode</span>
+                {!isDark && (
+                  <span className="rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Standard bright medical clinical workspace with crisp contrast.
+              </p>
+            </div>
+          </button>
+
+          {/* Night Mode Card */}
+          <button
+            type="button"
+            onClick={() => setTheme('dark')}
+            className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              isDark
+                ? 'border-teal-500 bg-teal-500/10 ring-2 ring-teal-500/20 shadow-xs'
+                : 'border-slate-200 bg-slate-50 hover:bg-slate-100/60'
+            }`}
+          >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-800 text-teal-400 shadow-xs">
+              <Moon className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-900">Night Mode</span>
+                {isDark && (
+                  <span className="rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Deep slate & navy dark mode designed for nighttime readability.
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* Notifications Section */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">

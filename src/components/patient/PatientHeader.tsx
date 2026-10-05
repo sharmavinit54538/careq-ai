@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -7,9 +7,21 @@ import {
   MessageSquare,
   CheckCircle2,
   Calendar,
-  X
+  X,
+  Sun,
+  Moon,
+  Pill,
+  FileText,
+  ArrowRight
 } from 'lucide-react';
-import type { PatientNotification } from '../../types/patient';
+import { GeminiIcon } from '../common/GeminiIcon';
+import { useTheme } from '../../context/ThemeContext';
+import type {
+  PatientNotification,
+  DoctorRecommendation,
+  Prescription,
+  MedicalRecord
+} from '../../types/patient';
 
 interface PatientHeaderProps {
   pageTitle?: string;
@@ -17,33 +29,134 @@ interface PatientHeaderProps {
   notifications?: PatientNotification[];
   onMarkNotificationAsRead?: (id: string) => void;
   onMarkAllNotificationsAsRead?: () => void;
+  doctors?: DoctorRecommendation[];
+  prescriptions?: Prescription[];
+  records?: MedicalRecord[];
 }
 
+const COMMON_SYMPTOMS = [
+  { name: 'Chest Pain or Palpitations', spec: 'Cardiology' },
+  { name: 'Headache & Migraine', spec: 'Neurology' },
+  { name: 'High Blood Pressure', spec: 'Cardiology' },
+  { name: 'Fever & Flu Symptoms', spec: 'General Healthcare' },
+  { name: 'Cholesterol & Lipid Check', spec: 'Internal Medicine' },
+  { name: 'Joint Pain & Arthritis', spec: 'Orthopedics' },
+  { name: 'Skin Rash & Allergies', spec: 'General Healthcare' }
+];
+
 export const PatientHeader: React.FC<PatientHeaderProps> = ({
-  pageTitle = 'Dashboard',
   onOpenMobileSidebar,
   notifications = [],
   onMarkNotificationAsRead,
-  onMarkAllNotificationsAsRead
+  onMarkAllNotificationsAsRead,
+  doctors = [],
+  prescriptions = [],
+  records = []
 }) => {
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const q = searchQuery.trim().toLowerCase();
+
+  const matchingDoctors = q
+    ? doctors.filter(
+        (d) =>
+          d.name.toLowerCase().includes(q) ||
+          d.specialization.toLowerCase().includes(q) ||
+          d.hospitalName.toLowerCase().includes(q)
+      )
+    : [];
+
+  const matchingPrescriptions = q
+    ? prescriptions.filter(
+        (p) =>
+          p.medicineName.toLowerCase().includes(q) ||
+          p.doctorName.toLowerCase().includes(q) ||
+          p.dosage.toLowerCase().includes(q)
+      )
+    : [];
+
+  const matchingRecords = q
+    ? records.filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          r.category.toLowerCase().includes(q) ||
+          r.doctorName.toLowerCase().includes(q)
+      )
+    : [];
+
+  const matchingSymptoms = q
+    ? COMMON_SYMPTOMS.filter(
+        (s) => s.name.toLowerCase().includes(q) || s.spec.toLowerCase().includes(q)
+      )
+    : [];
+
+  // Close dropdown on click outside or escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setIsDropdownOpen(false);
       navigate(`/patient/doctors?search=${encodeURIComponent(searchQuery.trim())}`);
       setShowSearchModal(false);
     }
   };
 
+  const handleSelectDoctor = (doctorName: string) => {
+    setIsDropdownOpen(false);
+    setShowSearchModal(false);
+    navigate(`/patient/doctors?search=${encodeURIComponent(doctorName)}`);
+  };
+
+  const handleSelectPrescription = () => {
+    setIsDropdownOpen(false);
+    setShowSearchModal(false);
+    navigate('/patient/prescriptions');
+  };
+
+  const handleSelectRecord = () => {
+    setIsDropdownOpen(false);
+    setShowSearchModal(false);
+    navigate('/patient/medical-records');
+  };
+
+  const handleAskQAI = (promptText: string) => {
+    setIsDropdownOpen(false);
+    setShowSearchModal(false);
+    navigate('/patient/ai-assistant', { state: { initialPrompt: promptText } });
+  };
+
   return (
-    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-8 backdrop-blur-md">
-      {/* Left: Mobile Toggle & Desktop Toggle & Page Title */}
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-8 backdrop-blur-md">
+      {/* Left: Mobile Toggle */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -53,34 +166,194 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
         >
           <Menu className="h-6 w-6" />
         </button>
-
-
-        <div>
-          <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            {pageTitle}
-          </h1>
-          <p className="hidden sm:block text-xs font-medium text-slate-600">
-            CareQ AI Health Intelligence &bull; Clinical Patient Space
-          </p>
-        </div>
       </div>
 
       {/* Right Controls: Search, Notifications, Messages, Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Desktop Search Bar */}
-        <form
-          onSubmit={handleSearchSubmit}
-          className="relative hidden md:flex items-center"
-        >
-          <Search className="absolute left-3.5 h-4 w-4 text-slate-600 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search doctors, records, or symptoms..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64 lg:w-80 rounded-full border border-slate-200 bg-slate-50 pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-600 transition-all focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 shadow-2xs"
-          />
-        </form>
+        {/* Desktop Search Bar with Live Suggestions */}
+        <div ref={searchContainerRef} className="relative hidden md:block">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative flex items-center"
+          >
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search doctors, records, or symptoms..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsDropdownOpen(true);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim()) setIsDropdownOpen(true);
+              }}
+              style={{ paddingLeft: '2.5rem' }}
+              className="w-64 lg:w-80 rounded-full border border-slate-200 bg-slate-50/90 pl-10 pr-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 transition-all focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsDropdownOpen(false);
+                }}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </form>
+
+          {/* Live Search Suggestions Dropdown */}
+          {isDropdownOpen && searchQuery.trim().length > 0 && (
+            <div className="absolute right-0 top-full mt-2 w-80 lg:w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl z-50 animate-fade-in divide-y divide-slate-100 max-h-[440px] overflow-y-auto">
+              {/* Quick QAI Action */}
+              <div className="pb-2">
+                <button
+                  type="button"
+                  onClick={() => handleAskQAI(searchQuery.trim())}
+                  className="flex items-center gap-3 w-full p-2.5 rounded-xl bg-gradient-to-r from-teal-50 to-sky-50 hover:from-teal-100/70 hover:to-sky-100/70 text-left transition-colors cursor-pointer group"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white shadow-xs flex-shrink-0">
+                    <GeminiIcon size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-900 group-hover:text-teal-700 truncate">
+                      Ask QAI: "{searchQuery}"
+                    </p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      Instant clinical insights & health guidance
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+              </div>
+
+              {/* Matching Doctors */}
+              {matchingDoctors.length > 0 && (
+                <div className="py-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">
+                    Verified Doctors ({matchingDoctors.length})
+                  </p>
+                  {matchingDoctors.slice(0, 3).map((doc) => (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      onClick={() => handleSelectDoctor(doc.name)}
+                      className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <img
+                        src={doc.avatar}
+                        alt={doc.name}
+                        className="h-8 w-8 rounded-full object-cover border border-slate-200 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-900 truncate">{doc.name}</p>
+                        <p className="text-[10px] text-teal-600 font-medium truncate">
+                          {doc.specialization} &bull; {doc.hospitalName}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                        ★ {doc.rating}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Matching Prescriptions */}
+              {matchingPrescriptions.length > 0 && (
+                <div className="py-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">
+                    Prescriptions ({matchingPrescriptions.length})
+                  </p>
+                  {matchingPrescriptions.slice(0, 2).map((rx) => (
+                    <button
+                      key={rx.id}
+                      type="button"
+                      onClick={handleSelectPrescription}
+                      className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-700 flex-shrink-0">
+                        <Pill className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-900 truncate">{rx.medicineName}</p>
+                        <p className="text-[10px] text-slate-500 truncate">
+                          {rx.dosage} &bull; Dr. {rx.doctorName}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Matching Records */}
+              {matchingRecords.length > 0 && (
+                <div className="py-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">
+                    Medical Records ({matchingRecords.length})
+                  </p>
+                  {matchingRecords.slice(0, 2).map((rec) => (
+                    <button
+                      key={rec.id}
+                      type="button"
+                      onClick={handleSelectRecord}
+                      className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 flex-shrink-0">
+                        <FileText className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-900 truncate">{rec.name}</p>
+                        <p className="text-[10px] text-slate-500 truncate">
+                          {rec.category} &bull; {rec.date}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Matching Symptoms */}
+              {matchingSymptoms.length > 0 && (
+                <div className="py-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">
+                    Symptoms & Topics ({matchingSymptoms.length})
+                  </p>
+                  {matchingSymptoms.slice(0, 2).map((sym, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleSelectDoctor(sym.spec)}
+                      className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="text-xs font-medium text-slate-800">{sym.name}</span>
+                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+                        Find {sym.spec}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* View All */}
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="text-xs font-bold text-teal-600 hover:text-teal-700 cursor-pointer"
+                >
+                  View all doctors matching "{searchQuery}" &rarr;
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Mobile Search Button */}
         <button
@@ -90,6 +363,21 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
           aria-label="Open Search"
         >
           <Search className="h-5 w-5" />
+        </button>
+
+        {/* Theme Toggle (Light / Night Mode) */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Night Mode'}
+          aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Night Mode'}
+        >
+          {isDark ? (
+            <Sun className="h-5 w-5 text-amber-400" />
+          ) : (
+            <Moon className="h-5 w-5 text-slate-600" />
+          )}
         </button>
 
         {/* Consultations / Messages Quick Link */}

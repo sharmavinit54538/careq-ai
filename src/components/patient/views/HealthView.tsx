@@ -21,20 +21,11 @@ export const HealthView: React.FC<HealthViewProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            Health & Clinical Telemetry
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Real-time biometric telemetry, blood pressure tracking, and wellness indicators.
-          </p>
-        </div>
-
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={onAddHealthInfo}
-          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto"
+          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Update Vitals</span>

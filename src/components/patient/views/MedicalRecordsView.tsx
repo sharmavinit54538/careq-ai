@@ -55,37 +55,31 @@ export const MedicalRecordsView: React.FC<MedicalRecordsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            Medical Records & Diagnostics
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Access, download, and organize your clinical reports, imaging, and hospital summaries.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onUploadRecord}
-          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto"
-        >
-          <Upload className="h-4 w-4" />
-          <span>Upload Document</span>
-        </button>
-      </div>
-
-      {/* Search and Category Filter */}
+      {/* Search and Category Filter with Action */}
       <div className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search records by title, facility, or doctor..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search records by title, facility, or doctor..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '2.5rem' }}
+              className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={onUploadRecord}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto cursor-pointer flex-shrink-0"
+          >
+            <Upload className="h-4 w-4" />
+            <span>Upload Document</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">

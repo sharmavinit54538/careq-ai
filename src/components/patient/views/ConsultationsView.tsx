@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Video, Mic, MicOff, VideoOff, MessageSquare, ShieldCheck, PhoneOff } from 'lucide-react';
+import { Video, Mic, MicOff, VideoOff, MessageSquare, PhoneOff } from 'lucide-react';
 import type { Appointment } from '../../../types/patient';
 
 interface ConsultationsViewProps {
@@ -39,22 +39,6 @@ export const ConsultationsView: React.FC<ConsultationsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            Telehealth Consultation Room
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            End-to-end encrypted high-definition clinical video session.
-          </p>
-        </div>
-
-        <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50 border border-teal-200 px-3.5 py-1.5 text-xs font-bold text-teal-800 self-start sm:self-auto">
-          <ShieldCheck className="h-4 w-4 text-teal-600" />
-          <span>HIPAA Certified Encrypted Stream</span>
-        </div>
-      </div>
-
       {/* Main Video Call Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Video Stage (2 columns) */}

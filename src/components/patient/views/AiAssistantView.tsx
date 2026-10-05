@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Bot,
   Send,
-  Sparkles,
-  ShieldAlert,
   User,
   Calendar,
   Pill,
   FileText
 } from 'lucide-react';
+import { GeminiIcon } from '../../common/GeminiIcon';
 import { useNavigate } from 'react-router-dom';
 
 export const AiAssistantView: React.FC = () => {
@@ -18,7 +16,7 @@ export const AiAssistantView: React.FC = () => {
   >([
     {
       sender: 'ai',
-      text: 'Hello Sarah! I am your CareQ AI Clinical Health Navigator. I can help explain medical terms, summarize your lab tests, check prescription interactions, or guide you to certified specialists. How can I assist you with your health today?',
+      text: 'Hello Sarah! I am QAI, your Clinical Health Navigator. I can help explain medical terms, summarize your lab tests, check prescription interactions, or guide you to certified specialists. How can I assist you with your health today?',
       time: '10:00 AM'
     }
   ]);
@@ -90,37 +88,8 @@ export const AiAssistantView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-              CareQ AI Assistant
-            </h2>
-            <span className="flex items-center gap-1 rounded-md bg-teal-50 border border-teal-200 px-2 py-0.5 text-xs font-bold text-teal-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Clinical Navigator Active</span>
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Intelligent healthcare copilot for clinical context, test explanations, and care coordination.
-          </p>
-        </div>
-      </div>
-
-      {/* Safety Notice */}
-      <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-4 text-xs text-amber-900 flex items-start gap-3 shadow-2xs">
-        <ShieldAlert className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="leading-relaxed">
-          <span className="font-bold uppercase tracking-wider text-amber-950">
-            Medical Safety Notice:{' '}
-          </span>
-          CareQ AI is designed to support and educate patients, not replace licensed physicians. The assistant does not make autonomous clinical diagnoses. If you have an emergency, immediately call 911.
-        </div>
-      </div>
-
       {/* Chat Container */}
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-xs overflow-hidden flex flex-col h-[560px]">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-xs overflow-hidden flex flex-col h-[calc(100vh-140px)] min-h-[580px]">
         {/* Messages Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
           {messages.map((m, idx) => (
@@ -133,11 +102,11 @@ export const AiAssistantView: React.FC = () => {
               <div
                 className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl ${
                   m.sender === 'ai'
-                    ? 'bg-teal-600 text-white shadow-xs'
+                    ? 'bg-gradient-to-tr from-teal-600 to-sky-500 text-white shadow-xs'
                     : 'bg-slate-900 text-white'
                 }`}
               >
-                {m.sender === 'ai' ? <Bot className="h-5 w-5" /> : <User className="h-4 w-4" />}
+                {m.sender === 'ai' ? <GeminiIcon size={18} className="text-white" /> : <User className="h-4 w-4" />}
               </div>
 
               <div
@@ -158,8 +127,8 @@ export const AiAssistantView: React.FC = () => {
 
           {isTyping && (
             <div className="flex gap-3 max-w-sm">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-600 text-white">
-                <Bot className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-600 to-sky-500 text-white">
+                <GeminiIcon size={16} className="text-white" />
               </div>
               <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-xs text-slate-500 flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-slate-400 animate-bounce" />

@@ -245,7 +245,7 @@ export const PatientDashboard: React.FC = () => {
       />
     );
   } else if (pathname.startsWith('/patient/ai-assistant')) {
-    pageTitle = 'CareQ AI Assistant';
+    pageTitle = 'QAI';
     currentViewComponent = <AiAssistantView />;
   } else if (pathname.startsWith('/patient/notifications')) {
     pageTitle = 'Notifications';
@@ -392,6 +392,9 @@ export const PatientDashboard: React.FC = () => {
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationRead}
           onMarkAllNotificationsAsRead={handleMarkAllNotificationsRead}
+          doctors={recommendedDoctors}
+          prescriptions={prescriptions}
+          records={medicalRecords}
         />
 
         {/* Dynamic Patient Content Body */}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Bot,
   Send,
   ShieldAlert,
   Sparkles,
@@ -10,6 +9,7 @@ import {
   Calendar,
   FileText
 } from 'lucide-react';
+import { GeminiIcon } from '../common/GeminiIcon';
 import { useNavigate } from 'react-router-dom';
 
 interface CareQAIAssistantCardProps {
@@ -68,7 +68,7 @@ export const CareQAIAssistantCard: React.FC<CareQAIAssistantCardProps> = ({
         setTimeout(() => navigate('/patient/prescriptions'), 1200);
       } else {
         setResponseMessage(
-          `"CareQ AI Assistant is ready to help with "${inputValue}". Remember that clinical decisions require consultation with a licensed physician.`
+          `"QAI is ready to help with "${inputValue}". Remember that clinical decisions require consultation with a licensed physician.`
         );
       }
       setInputValue('');
@@ -86,12 +86,12 @@ export const CareQAIAssistantCard: React.FC<CareQAIAssistantCardProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-teal-500 to-sky-400 text-slate-950 shadow-md shadow-teal-500/30">
-              <Bot className="h-6 w-6" />
+              <GeminiIcon size={24} className="text-white" variant="gradient" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-heading font-extrabold text-white">
-                  CareQ AI Assistant
+                  QAI
                 </h3>
                 <span className="flex items-center gap-1 rounded-md bg-teal-400/20 px-2 py-0.5 text-[10px] font-bold text-teal-300">
                   <Sparkles className="h-3 w-3" /> GPT-4o Health

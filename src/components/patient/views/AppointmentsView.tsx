@@ -34,30 +34,10 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            My Appointments
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Manage your scheduled video teleconsultations and in-person clinic visits.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onBookAppointment}
-          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Book New Visit</span>
-        </button>
-      </div>
-
-      {/* Status Filters */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
-        {(['all', 'upcoming', 'completed', 'cancelled'] as const).map((tab) => (
+      {/* Filters and Actions Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+          {(['all', 'upcoming', 'completed', 'cancelled'] as const).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -71,6 +51,16 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             {tab}
           </button>
         ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={onBookAppointment}
+          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto cursor-pointer flex-shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Book New Visit</span>
+        </button>
       </div>
 
       {/* Appointment Cards */}
