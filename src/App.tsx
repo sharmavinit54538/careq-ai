@@ -62,27 +62,34 @@ export function App() {
           <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 
           {/* Protected Patient Routes */}
-          <Route
-            path="/patient/dashboard"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['patient']}>
-                  <PatientDashboard />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-          {/* Any other /patient/* routes can be guarded similarly */}
-          <Route
-            path="/patient/*"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['patient']}>
-                  <PatientDashboard />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
+          {[
+            '/patient',
+            '/patient/dashboard',
+            '/patient/doctors',
+            '/patient/doctors/:id',
+            '/patient/appointments',
+            '/patient/consultations',
+            '/patient/prescriptions',
+            '/patient/medical-records',
+            '/patient/health',
+            '/patient/ai-assistant',
+            '/patient/notifications',
+            '/patient/profile',
+            '/patient/settings',
+            '/patient/*'
+          ].map((path) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['patient']}>
+                    <PatientDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+          ))}
 
           {/* Protected Doctor Routes */}
           <Route
