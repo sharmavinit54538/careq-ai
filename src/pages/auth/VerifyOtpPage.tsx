@@ -6,7 +6,7 @@ import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
 import { maskEmail } from '../../utils/validation';
-import { CheckCircle2, RotateCw, Edit3, ShieldAlert, ArrowRight } from 'lucide-react';
+import { CheckCircle2, RotateCw, Edit3 } from 'lucide-react';
 
 export const VerifyOtpPage: React.FC = () => {
   const [otp, setOtp] = useState('');
@@ -41,7 +41,7 @@ export const VerifyOtpPage: React.FC = () => {
 
   // Countdown timer for resend
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (countdown > 0) {
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     } else {

@@ -1,9 +1,9 @@
 import React from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CareQLogo } from '../components/common/CareQLogo';
 import { Button } from '../components/common/Button';
-import { ShieldAlert, ArrowLeft, LayoutDashboard, LogOut } from 'lucide-react';
+import { ShieldAlert, LayoutDashboard, LogOut } from 'lucide-react';
 
 export const UnauthorizedPage: React.FC = () => {
   const { user, logout } = useAuth();

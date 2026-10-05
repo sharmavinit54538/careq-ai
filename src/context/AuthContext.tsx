@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import {
+import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import type {
   User,
   UserRole,
   RegisterPatientPayload,

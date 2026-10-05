@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
-import { User, DoctorVerificationStatus } from '../../types/auth';
+import type { User, DoctorVerificationStatus } from '../../types/auth';
 import { CareQLogo } from '../../components/common/CareQLogo';
 import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import {
   ShieldAlert,
-  Users,
   Stethoscope,
   CheckCircle,
   XCircle,
   Clock,
   LogOut,
   FileText,
-  Building2,
-  Award,
   RefreshCw,
-  ExternalLink,
   ShieldCheck,
   RotateCcw
 } from 'lucide-react';

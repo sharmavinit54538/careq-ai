@@ -1,4 +1,4 @@
-import React, { InputHTMLAttributes, forwardRef, useState } from 'react';
+import React, { type InputHTMLAttributes, forwardRef, useState } from 'react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

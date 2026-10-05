@@ -7,7 +7,7 @@ import { Checkbox } from '../../components/common/Checkbox';
 import { Alert } from '../../components/common/Alert';
 import { PasswordStrengthIndicator } from '../../components/common/PasswordStrength';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Phone, Lock, UserPlus, Stethoscope, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, Lock, UserPlus, Stethoscope } from 'lucide-react';
 import { isValidEmail, isValidPhone, evaluatePasswordStrength } from '../../utils/validation';
 
 export const RegisterPatientPage: React.FC = () => {
@@ -91,7 +91,7 @@ export const RegisterPatientPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const result = await registerPatient(formData);
+      await registerPatient(formData);
       // Registration successful -> proceed to OTP verification
       navigate(`/auth/verify?email=${encodeURIComponent(formData.email)}&type=patient`);
     } catch (err: any) {

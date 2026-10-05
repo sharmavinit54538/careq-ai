@@ -5,7 +5,7 @@ import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, ArrowLeft, Send, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Mail, ArrowLeft, Send, ExternalLink } from 'lucide-react';
 import { isValidEmail } from '../../utils/validation';
 
 export const ForgotPasswordPage: React.FC = () => {

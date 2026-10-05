@@ -6,7 +6,7 @@ import { Button } from '../../components/common/Button';
 import { Checkbox } from '../../components/common/Checkbox';
 import { Alert } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, LogIn, ArrowRight, UserPlus, Stethoscope } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Stethoscope } from 'lucide-react';
 import { isValidEmail } from '../../utils/validation';
 
 export const LoginPage: React.FC = () => {

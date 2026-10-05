@@ -4,17 +4,11 @@ import { CareQLogo } from '../../components/common/CareQLogo';
 import { Button } from '../../components/common/Button';
 import {
   Calendar,
-  FileText,
-  HeartPulse,
   Bot,
   LogOut,
-  Bell,
-  Clock,
   UserCheck,
   Video,
-  Shield,
-  Search,
-  ChevronRight
+  Shield
 } from 'lucide-react';
 
 export const PatientDashboard: React.FC = () => {

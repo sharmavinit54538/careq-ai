@@ -7,7 +7,7 @@ import { Alert } from '../../components/common/Alert';
 import { PasswordStrengthIndicator } from '../../components/common/PasswordStrength';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
-import { Lock, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Lock, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { evaluatePasswordStrength } from '../../utils/validation';
 
 export const ResetPasswordPage: React.FC = () => {

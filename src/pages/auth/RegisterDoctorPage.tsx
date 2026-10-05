@@ -55,7 +55,7 @@ export const RegisterDoctorPage: React.FC = () => {
   ]);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { registerDoctor } = useAuth();

@@ -4,17 +4,12 @@ import { CareQLogo } from '../../components/common/CareQLogo';
 import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import {
-  Stethoscope,
   Clock,
   CheckCircle,
-  AlertTriangle,
   Lock,
   LogOut,
   FileText,
-  Users,
-  Calendar,
   Video,
-  Award,
   ShieldCheck,
   RotateCw
 } from 'lucide-react';
