@@ -51,8 +51,9 @@ export const PatientDashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Mobile sidebar state
+  // Sidebar states
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Core Data States
   const [isLoading, setIsLoading] = useState(true);
@@ -377,6 +378,8 @@ export const PatientDashboard: React.FC = () => {
       <PatientSidebar
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
         unreadCount={unreadNotificationCount}
       />
 
@@ -386,6 +389,8 @@ export const PatientDashboard: React.FC = () => {
         <PatientHeader
           pageTitle={pageTitle}
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+          onToggleDesktopSidebar={() => setSidebarCollapsed((prev) => !prev)}
+          isSidebarCollapsed={sidebarCollapsed}
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationRead}
           onMarkAllNotificationsAsRead={handleMarkAllNotificationsRead}

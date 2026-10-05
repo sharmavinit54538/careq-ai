@@ -21,6 +21,8 @@ import { useAuth } from '../../context/AuthContext';
 interface PatientSidebarProps {
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
   unreadCount?: number;
 }
 
@@ -35,13 +37,25 @@ interface NavItem {
 export const PatientSidebar: React.FC<PatientSidebarProps> = ({
   mobileOpen = false,
   onCloseMobile,
+  collapsed: externalCollapsed,
+  onToggleCollapse,
   unreadCount = 0
 }) => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [avatarError, setAvatarError] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setInternalCollapsed((prev) => !prev);
+    }
+  };
 
   // Lock background scroll when mobile drawer is open
   useEffect(() => {
@@ -85,7 +99,7 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     return location.pathname.startsWith(itemPath);
   };
 
-  const navItems: NavItem[] = [
+  const careManagementNavItems: NavItem[] = [
     { name: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
     { name: 'Find Doctors', path: '/patient/doctors', icon: UserCheck },
     { name: 'Appointments', path: '/patient/appointments', icon: Calendar },
@@ -97,20 +111,20 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     { name: 'Notifications', path: '/patient/notifications', icon: Bell, badge: unreadCount }
   ];
 
-  const secondaryNavItems: NavItem[] = [
+  const accountNavItems: NavItem[] = [
     { name: 'My Profile', path: '/patient/profile', icon: User },
     { name: 'Settings', path: '/patient/settings', icon: Settings }
   ];
 
-  const renderSidebarContent = (collapsed: boolean) => (
+  const renderSidebarContent = (collapsedState: boolean, isMobile: boolean) => (
     <div className="flex h-full flex-col bg-white text-slate-800 overflow-hidden w-full">
       {/* Brand & Logo Header */}
-      {collapsed ? (
-        <div className="flex h-[76px] items-center justify-center border-b border-slate-100 flex-shrink-0">
+      {collapsedState ? (
+        <div className="flex h-[84px] items-center justify-center border-b border-slate-100 flex-shrink-0 px-2">
           <button
             type="button"
-            onClick={() => setIsCollapsed(false)}
-            className="p-2.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+            onClick={handleToggle}
+            className="p-2.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
@@ -118,14 +132,14 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
           </button>
         </div>
       ) : (
-        <div className="flex h-[76px] items-center justify-between px-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex h-[84px] items-center justify-between px-5 border-b border-slate-100 flex-shrink-0">
           <NavLink
             to="/patient/dashboard"
-            onClick={onCloseMobile}
-            className="flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0"
+            onClick={isMobile ? onCloseMobile : undefined}
+            className="flex items-center gap-3.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0"
             aria-label="CareQ AI Patient Portal"
           >
-            {/* Logo Mark: Approx 44x44 - 48px, rounded, CareQ AI gradient cross */}
+            {/* Logo Mark: Approx 44x44, rounded-xl, CareQ AI gradient cross */}
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 via-teal-500 to-sky-600 shadow-md shadow-teal-600/20 text-white flex-shrink-0">
               <svg
                 className="h-6 w-6"
@@ -156,7 +170,7 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
                   AI
                 </span>
               </div>
-              <p className="text-xs font-medium text-slate-500 tracking-tight mt-1 leading-none">
+              <p className="text-xs font-medium text-slate-500 tracking-tight mt-1.5 leading-none">
                 Patient Portal
               </p>
             </div>
@@ -166,26 +180,20 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
             {/* PanelLeft Toggle Button */}
             <button
               type="button"
-              onClick={() => {
-                if (onCloseMobile) {
-                  onCloseMobile();
-                } else {
-                  setIsCollapsed(true);
-                }
-              }}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
-              title={onCloseMobile ? 'Close sidebar' : 'Collapse sidebar'}
+              onClick={isMobile ? onCloseMobile : handleToggle}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+              title={isMobile ? 'Close sidebar' : 'Collapse sidebar'}
               aria-label="Toggle sidebar"
             >
               <PanelLeft className="h-5 w-5" strokeWidth={2} />
             </button>
 
             {/* Mobile close button */}
-            {onCloseMobile && (
+            {isMobile && (
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                className="lg:hidden p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
                 aria-label="Close navigation"
               >
                 <X className="h-5 w-5" />
@@ -197,33 +205,32 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
 
       {/* Scrollable Navigation Area */}
       <div
-        className={`flex-1 overflow-y-auto space-y-6 overflow-x-hidden ${
-          collapsed ? 'px-2 py-4' : 'px-4 py-4'
+        className={`flex-1 overflow-y-auto overflow-x-hidden ${
+          collapsedState ? 'px-2.5 py-5 space-y-6' : 'px-5 py-5'
         }`}
       >
-        {/* Primary Navigation */}
-        <div>
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isRouteActive(item.path);
-
-              if (collapsed) {
+        {collapsedState ? (
+          /* Collapsed Icons Only */
+          <>
+            <nav className="space-y-2">
+              {careManagementNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isRouteActive(item.path);
                 return (
                   <NavLink
                     key={item.path}
                     to={item.path}
-                    onClick={onCloseMobile}
+                    onClick={isMobile ? onCloseMobile : undefined}
                     title={item.name}
-                    className={`relative flex items-center justify-center p-2.5 rounded-xl transition-colors duration-150 select-none ${
+                    className={`relative flex items-center justify-center w-full min-h-[48px] p-3 rounded-xl transition-colors duration-150 select-none ${
                       active
                         ? 'bg-teal-600 text-white shadow-xs'
                         : 'text-slate-500 hover:bg-teal-50/80 hover:text-teal-700'
                     } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   >
                     <Icon
-                      size={22}
-                      className={`w-[22px] h-[22px] flex-shrink-0 transition-colors ${
+                      size={24}
+                      className={`w-6 h-6 flex-shrink-0 transition-colors ${
                         active
                           ? 'text-white'
                           : item.isAi
@@ -232,131 +239,153 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
                       }`}
                     />
                     {item.isAi && !active && (
-                      <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
                     )}
                     {typeof item.badge === 'number' && item.badge > 0 && (
-                      <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
                     )}
                   </NavLink>
                 );
-              }
+              })}
+            </nav>
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onCloseMobile}
-                  className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 select-none ${
-                    active
-                      ? 'bg-teal-600 text-white shadow-xs font-semibold'
-                      : 'text-slate-600 hover:bg-teal-50/80 hover:text-teal-700'
-                  } focus:outline-none focus:ring-2 focus:ring-teal-500`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon
-                      size={22}
-                      className={`w-[22px] h-[22px] flex-shrink-0 transition-colors ${
-                        active
-                          ? 'text-white'
-                          : item.isAi
-                          ? 'text-teal-600'
-                          : 'text-slate-400 group-hover:text-teal-600'
-                      }`}
-                    />
-                    <span className="truncate">{item.name}</span>
-                  </div>
+            <div className="border-t border-slate-100 mx-2" />
 
-                  {item.isAi && !active && (
-                    <span className="flex h-2 w-2 rounded-full bg-teal-500 animate-pulse flex-shrink-0 ml-2" />
-                  )}
-
-                  {typeof item.badge === 'number' && item.badge > 0 && (
-                    <span
-                      className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold flex-shrink-0 ml-2 ${
-                        active
-                          ? 'bg-white text-teal-700'
-                          : 'bg-rose-100 text-rose-700'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* ACCOUNT & PREFERENCES */}
-        <div>
-          {!collapsed ? (
-            <>
-              <div className="mb-4 border-t border-slate-100" />
-              <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 select-none">
-               
-              </p>
-            </>
-          ) : (
-            <div className="my-2 border-t border-slate-100 mx-2" />
-          )}
-          <nav className="space-y-1">
-            {secondaryNavItems.map((item) => {
-              const Icon = item.icon;
-              const active = isRouteActive(item.path);
-
-              if (collapsed) {
+            <nav className="space-y-2">
+              {accountNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isRouteActive(item.path);
                 return (
                   <NavLink
                     key={item.path}
                     to={item.path}
-                    onClick={onCloseMobile}
+                    onClick={isMobile ? onCloseMobile : undefined}
                     title={item.name}
-                    className={`flex items-center justify-center p-2.5 rounded-xl transition-colors duration-150 select-none ${
+                    className={`flex items-center justify-center w-full min-h-[48px] p-3 rounded-xl transition-colors duration-150 select-none ${
                       active
                         ? 'bg-teal-600 text-white shadow-xs'
                         : 'text-slate-500 hover:bg-teal-50/80 hover:text-teal-700'
                     } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   >
                     <Icon
-                      size={22}
-                      className={`w-[22px] h-[22px] flex-shrink-0 transition-colors ${
+                      size={24}
+                      className={`w-6 h-6 flex-shrink-0 transition-colors ${
                         active ? 'text-white' : 'text-slate-400 hover:text-teal-600'
                       }`}
                     />
                   </NavLink>
                 );
-              }
+              })}
+            </nav>
+          </>
+        ) : (
+          /* Expanded Full Navigation */
+          <div>
+            {/* Section 1: CARE MANAGEMENT */}
+            <div>
+              <div className="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-4 select-none">
+                CARE MANAGEMENT
+              </div>
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onCloseMobile}
-                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 select-none ${
-                    active
-                      ? 'bg-teal-600 text-white shadow-xs font-semibold'
-                      : 'text-slate-600 hover:bg-teal-50/80 hover:text-teal-700'
-                  } focus:outline-none focus:ring-2 focus:ring-teal-500`}
-                >
-                  <Icon
-                    size={22}
-                    className={`w-[22px] h-[22px] flex-shrink-0 transition-colors ${
-                      active
-                        ? 'text-white'
-                        : 'text-slate-400 group-hover:text-teal-600'
-                    }`}
-                  />
-                  <span className="truncate">{item.name}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
+              <nav className="space-y-2">
+                {careManagementNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isRouteActive(item.path);
+
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={isMobile ? onCloseMobile : undefined}
+                      className={`group flex items-center justify-between min-h-[48px] px-4 py-3 rounded-xl transition-all duration-150 select-none ${
+                        active
+                          ? 'bg-teal-600 text-white font-semibold shadow-xs'
+                          : 'text-slate-600 hover:bg-teal-50/70 hover:text-teal-900'
+                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <Icon
+                          size={24}
+                          className={`w-6 h-6 flex-shrink-0 transition-colors ${
+                            active
+                              ? 'text-white'
+                              : item.isAi
+                              ? 'text-teal-600'
+                              : 'text-slate-400 group-hover:text-teal-600'
+                          }`}
+                        />
+                        <span className="truncate text-[15px] font-medium leading-6">
+                          {item.name}
+                        </span>
+                      </div>
+
+                      {item.isAi && !active && (
+                        <span className="flex h-2 w-2 rounded-full bg-teal-500 animate-pulse flex-shrink-0 ml-2" />
+                      )}
+
+                      {typeof item.badge === 'number' && item.badge > 0 && (
+                        <span
+                          className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold flex-shrink-0 ml-2 ${
+                            active
+                              ? 'bg-white text-teal-700'
+                              : 'bg-rose-100 text-rose-700'
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* 32px gap between sections */}
+            <div className="mt-8">
+              {/* Section 2: ACCOUNT & PREFERENCES */}
+              <div className="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-4 select-none">
+                ACCOUNT & PREFERENCES
+              </div>
+
+              <nav className="space-y-2">
+                {accountNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isRouteActive(item.path);
+
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={isMobile ? onCloseMobile : undefined}
+                      className={`group flex items-center gap-4 min-h-[48px] px-4 py-3 rounded-xl transition-all duration-150 select-none ${
+                        active
+                          ? 'bg-teal-600 text-white font-semibold shadow-xs'
+                          : 'text-slate-600 hover:bg-teal-50/70 hover:text-teal-900'
+                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+                    >
+                      <Icon
+                        size={24}
+                        className={`w-6 h-6 flex-shrink-0 transition-colors ${
+                          active
+                            ? 'text-white'
+                            : 'text-slate-400 group-hover:text-teal-600'
+                        }`}
+                      />
+                      <span className="truncate text-[15px] font-medium leading-6">
+                        {item.name}
+                      </span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom User Profile Section */}
-      {collapsed ? (
-        <div className="p-2.5 border-t border-slate-200 bg-slate-50/70 mt-auto flex-shrink-0 flex flex-col items-center gap-3">
+      {collapsedState ? (
+        <div className="p-3 border-t border-slate-100 bg-white mt-auto flex-shrink-0 flex flex-col items-center gap-3">
           {user?.avatarUrl && !avatarError ? (
             <img
               src={user.avatarUrl}
@@ -378,14 +407,14 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
             type="button"
             onClick={handleLogout}
             title="Sign Out"
-            className="flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors"
+            className="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors cursor-pointer"
           >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
       ) : (
-        <div className="p-4 border-t border-slate-200 bg-slate-50/70 mt-auto flex-shrink-0">
-          <div className="flex items-center gap-3 mb-3">
+        <div className="p-5 border-t border-slate-100 bg-white mt-auto flex-shrink-0">
+          <div className="flex items-center gap-3.5 mb-4">
             {user?.avatarUrl && !avatarError ? (
               <img
                 src={user.avatarUrl}
@@ -411,7 +440,7 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors duration-150"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 px-3 py-2.5 text-xs font-semibold text-slate-700 shadow-2xs focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors duration-150 cursor-pointer"
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
             <span>Sign Out</span>
@@ -425,23 +454,23 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     <>
       {/* Desktop Fixed Locked Sidebar - In-flow spacer placeholder to reserve width */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-200 ${
+        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
           isCollapsed
-            ? 'w-[76px] min-w-[76px] max-w-[76px]'
-            : 'w-[270px] min-w-[270px] max-w-[270px]'
+            ? 'w-[80px] min-w-[80px] max-w-[80px]'
+            : 'w-[280px] min-w-[280px] max-w-[280px]'
         }`}
         aria-hidden="true"
       />
 
       {/* Desktop Fixed Locked Sidebar - 100% locked to viewport, never scrolls away */}
       <aside
-        className={`hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r border-slate-200 bg-white z-30 select-none overflow-hidden transition-all duration-200 ${
+        className={`hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r border-slate-200/90 bg-white z-30 select-none overflow-hidden transition-all duration-300 ease-in-out ${
           isCollapsed
-            ? 'w-[76px] min-w-[76px] max-w-[76px]'
-            : 'w-[270px] min-w-[270px] max-w-[270px]'
+            ? 'w-[80px] min-w-[80px] max-w-[80px]'
+            : 'w-[280px] min-w-[280px] max-w-[280px]'
         }`}
       >
-        {renderSidebarContent(isCollapsed)}
+        {renderSidebarContent(isCollapsed, false)}
       </aside>
 
       {/* Mobile Drawer Backdrop and Slide-over */}
@@ -455,13 +484,11 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
           />
 
           {/* Slide-over panel */}
-          <div className="fixed inset-y-0 left-0 w-[270px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col h-full overflow-hidden">
-            {renderSidebarContent(false)}
+          <div className="fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col h-full overflow-hidden">
+            {renderSidebarContent(false, true)}
           </div>
         </div>
       )}
     </>
   );
 };
-
-

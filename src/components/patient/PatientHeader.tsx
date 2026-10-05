@@ -9,12 +9,13 @@ import {
   Calendar,
   X
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import type { PatientNotification } from '../../types/patient';
 
 interface PatientHeaderProps {
   pageTitle?: string;
   onOpenMobileSidebar?: () => void;
+  onToggleDesktopSidebar?: () => void;
+  isSidebarCollapsed?: boolean;
   notifications?: PatientNotification[];
   onMarkNotificationAsRead?: (id: string) => void;
   onMarkAllNotificationsAsRead?: () => void;
@@ -23,11 +24,12 @@ interface PatientHeaderProps {
 export const PatientHeader: React.FC<PatientHeaderProps> = ({
   pageTitle = 'Dashboard',
   onOpenMobileSidebar,
+  onToggleDesktopSidebar,
+  isSidebarCollapsed = false,
   notifications = [],
   onMarkNotificationAsRead,
   onMarkAllNotificationsAsRead
 }) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,16 +47,28 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-8 backdrop-blur-md">
-      {/* Left: Mobile Toggle & Page Title */}
+      {/* Left: Mobile Toggle & Desktop Toggle & Page Title */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onOpenMobileSidebar}
-          className="inline-flex lg:hidden items-center justify-center p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="inline-flex lg:hidden items-center justify-center p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
           aria-label="Open sidebar menu"
         >
           <Menu className="h-6 w-6" />
         </button>
+
+        {onToggleDesktopSidebar && (
+          <button
+            type="button"
+            onClick={onToggleDesktopSidebar}
+            className="hidden lg:inline-flex items-center justify-center p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label="Toggle sidebar"
+          >
+            <PanelLeft className="h-5 w-5" strokeWidth={2} />
+          </button>
+        )}
 
         <div>
           <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
@@ -189,28 +203,7 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
           )}
         </div>
 
-        {/* User Profile Pill */}
-        <Link
-          to="/patient/profile"
-          className="flex items-center gap-3 pl-2 sm:pl-3 border-l border-slate-200 group focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-xl py-1"
-        >
-          <img
-            src={
-              user?.avatarUrl ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                user?.name || 'Patient'
-              )}&background=0d9488&color=fff`
-            }
-            alt={user?.name || 'Patient'}
-            className="h-9 w-9 rounded-full object-cover ring-2 ring-slate-200 group-hover:ring-teal-500 transition-all flex-shrink-0"
-          />
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
-              {user?.name}
-            </p>
-            <p className="text-[10px] font-semibold text-teal-600">Patient</p>
-          </div>
-        </Link>
+        {/* Profile is accessible via the sidebar */}
       </div>
 
       {/* Mobile Search Modal */}
