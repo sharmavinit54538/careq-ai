@@ -88,7 +88,7 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
         (r) =>
           r.name.toLowerCase().includes(q) ||
           r.category.toLowerCase().includes(q) ||
-          r.doctorName.toLowerCase().includes(q)
+          (r.uploadedBy && r.uploadedBy.toLowerCase().includes(q))
       )
     : [];
 
@@ -247,7 +247,7 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
                       className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 text-left transition-colors cursor-pointer"
                     >
                       <img
-                        src={doc.avatar}
+                        src={doc.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.name)}&background=0d9488&color=fff`}
                         alt={doc.name}
                         className="h-8 w-8 rounded-full object-cover border border-slate-200 flex-shrink-0"
                       />
