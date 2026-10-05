@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthLayout } from '../../components/common/AuthLayout';
 import { OtpInput } from '../../components/auth/OtpInput';
-import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
 import { maskEmail } from '../../utils/validation';
-import { CheckCircle2, RotateCw, Edit3 } from 'lucide-react';
+import { Loader2, Edit3, Check } from 'lucide-react';
 
 export const VerifyOtpPage: React.FC = () => {
   const [otp, setOtp] = useState('');
@@ -50,12 +49,12 @@ export const VerifyOtpPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleVerify = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (otp.length !== 6) {
+  const handleVerify = async (codeToVerify?: string) => {
+    const code = codeToVerify || otp;
+    if (code.length !== 6) {
       setStatusMessage({
         type: 'error',
-        text: 'Please enter the complete 6-digit verification code.'
+        text: 'Please enter the complete 6-digit code.'
       });
       return;
     }
@@ -64,10 +63,10 @@ export const VerifyOtpPage: React.FC = () => {
     setStatusMessage(null);
 
     try {
-      const user = await verifyOtp(email, otp);
+      const user = await verifyOtp(email, code);
       setStatusMessage({
         type: 'success',
-        text: 'Verification successful! Redirecting to your secure dashboard...'
+        text: 'Verification successful! Redirecting to your dashboard...'
       });
 
       setTimeout(() => {
@@ -78,11 +77,11 @@ export const VerifyOtpPage: React.FC = () => {
         } else {
           navigate('/patient/dashboard', { replace: true });
         }
-      }, 800);
+      }, 700);
     } catch (err: any) {
       setStatusMessage({
         type: 'error',
-        text: err.message || 'Invalid or expired verification code. Please check and try again.'
+        text: err.message || 'Invalid or expired code. Please check and try again.'
       });
     } finally {
       setIsSubmitting(false);
@@ -98,7 +97,7 @@ export const VerifyOtpPage: React.FC = () => {
       const msg = await resendOtp(email);
       setStatusMessage({
         type: 'success',
-        text: msg || 'A fresh verification code has been dispatched.'
+        text: msg || 'A new verification code has been sent to your email.'
       });
       setCountdown(60);
       setCanResend(false);
@@ -106,7 +105,7 @@ export const VerifyOtpPage: React.FC = () => {
     } catch (err: any) {
       setStatusMessage({
         type: 'error',
-        text: err.message || 'Unable to resend verification code. Please try again shortly.'
+        text: err.message || 'Unable to resend code. Please try again shortly.'
       });
     } finally {
       setIsResending(false);
@@ -119,17 +118,17 @@ export const VerifyOtpPage: React.FC = () => {
       setIsChangingEmail(false);
       setStatusMessage({
         type: 'info',
-        text: `Verification code will now be sent to ${newEmailInput.trim()}. Demo code: 123456`
+        text: `Verification code will now be sent to ${newEmailInput.trim()}.`
       });
     }
   };
 
   return (
     <AuthLayout
-      title="Verify your account"
-      subtitle="Enter the 6-digit security code sent to your registered address"
+      title="Check your email"
+      subtitle={`Please enter the 6-digit code sent to ${maskEmail(email)}`}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {statusMessage && (
           <Alert
             type={statusMessage.type}
@@ -138,150 +137,185 @@ export const VerifyOtpPage: React.FC = () => {
           />
         )}
 
-        {/* Email Masked Header & Change Email Option */}
-        <div
-          style={{
-            background: 'var(--slate-50)',
-            border: '1px solid var(--slate-200)',
-            borderRadius: 'var(--radius-md)',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
+        {/* Change Email Inline Option */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {isChangingEmail ? (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <div style={{ display: 'flex', gap: '6px', width: '100%', maxWidth: '340px' }}>
               <input
                 type="email"
                 value={newEmailInput}
                 onChange={(e) => setNewEmailInput(e.target.value)}
+                placeholder="Enter correct email"
+                autoFocus
                 style={{
                   flex: 1,
-                  padding: '6px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--primary-600)',
-                  fontSize: '0.875rem'
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(56, 189, 248, 0.4)',
+                  color: '#ffffff',
+                  fontSize: '0.8125rem',
+                  outline: 'none'
                 }}
               />
-              <Button size="sm" variant="primary" onClick={handleSaveEmailChange}>
+              <button
+                type="button"
+                onClick={handleSaveEmailChange}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  background: '#38bdf8',
+                  color: '#080d1a',
+                  fontWeight: 600,
+                  fontSize: '0.8125rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <Check size={14} />
                 Save
-              </Button>
+              </button>
             </div>
           ) : (
-            <>
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Verification Code Sent To
-                </div>
-                <div style={{ fontWeight: 700, color: 'var(--slate-900)', fontSize: '0.9375rem' }}>
-                  {maskEmail(email)}
-                </div>
-              </div>
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem' }}>
+              <span style={{ color: '#64748b' }}>Wrong email?</span>
               <button
                 type="button"
                 onClick={() => setIsChangingEmail(true)}
                 style={{
-                  display: 'flex',
+                  background: 'none',
+                  border: 'none',
+                  color: '#38bdf8',
+                  cursor: 'pointer',
+                  fontSize: '0.8125rem',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.8125rem',
-                  color: 'var(--primary-600)',
-                  fontWeight: 600
+                  padding: 0,
+                  textDecoration: 'underline'
                 }}
               >
-                <Edit3 size={14} />
-                <span>Change</span>
+                <Edit3 size={12} />
+                <span>Edit email</span>
               </button>
-            </>
+            </div>
           )}
         </div>
 
         {/* 6-Digit OTP Box Input */}
         <div>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--slate-700)', textAlign: 'center', display: 'block' }}>
-            6-Digit Verification Code
-          </label>
           <OtpInput
             value={otp}
             onChange={(val) => {
               setOtp(val);
               if (val.length === 6) {
-                // Auto trigger when 6 digits are typed
-                setTimeout(() => handleVerify(), 100);
+                setTimeout(() => handleVerify(val), 80);
               }
             }}
             hasError={statusMessage?.type === 'error'}
             disabled={isSubmitting}
           />
-          <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--slate-500)' }}>
-            Demo bypass code: <strong style={{ color: 'var(--primary-700)' }}>123456</strong>
-          </div>
         </div>
 
-        {/* Verify Button */}
-        <Button
+        {/* Continue Button */}
+        <button
           type="button"
-          variant="primary"
-          size="lg"
-          fullWidth
-          isLoading={isSubmitting}
-          disabled={otp.length !== 6}
+          disabled={otp.length !== 6 || isSubmitting}
           onClick={() => handleVerify()}
-          leftIcon={<CheckCircle2 size={18} />}
+          style={{
+            width: '100%',
+            height: '42px',
+            borderRadius: '8px',
+            background: otp.length === 6 && !isSubmitting ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+            color: otp.length === 6 && !isSubmitting ? '#0b1329' : 'rgba(255, 255, 255, 0.35)',
+            fontSize: '0.9375rem',
+            fontWeight: 700,
+            border: 'none',
+            cursor: otp.length === 6 && !isSubmitting ? 'pointer' : 'not-allowed',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease',
+            boxShadow:
+              otp.length === 6 && !isSubmitting ? '0 4px 14px rgba(255, 255, 255, 0.2)' : 'none',
+            marginTop: '4px'
+          }}
+          onMouseEnter={(e) => {
+            if (otp.length === 6 && !isSubmitting) {
+              e.currentTarget.style.background = '#f1f5f9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (otp.length === 6 && !isSubmitting) {
+              e.currentTarget.style.background = '#ffffff';
+            }
+          }}
         >
-          Verify &amp; Continue
-        </Button>
+          {isSubmitting ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Verifying...</span>
+            </>
+          ) : (
+            <span>Continue</span>
+          )}
+        </button>
 
-        {/* Resend & Timer */}
+        {/* Resend & Back link */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px',
-            paddingTop: '12px',
-            borderTop: '1px solid var(--slate-200)',
+            gap: '12px',
+            marginTop: '12px',
+            paddingTop: '16px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             fontSize: '0.875rem'
           }}
         >
-          <div style={{ color: 'var(--slate-600)' }}>
-            Didn't receive the email code?
+          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+            Didn't receive the email?{' '}
+            {canResend ? (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#38bdf8',
+                  fontWeight: 600,
+                  cursor: isResending ? 'not-allowed' : 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline'
+                }}
+              >
+                {isResending ? 'Resending...' : 'Resend code'}
+              </button>
+            ) : (
+              <span style={{ color: '#64748b' }}>
+                Resend code in <strong style={{ color: '#94a3b8' }}>{countdown}s</strong>
+              </span>
+            )}
           </div>
-
-          {canResend ? (
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={isResending}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                color: 'var(--primary-600)',
-                fontWeight: 600,
-                fontSize: '0.875rem'
-              }}
-            >
-              <RotateCw size={14} className={isResending ? 'animate-spin' : ''} />
-              <span>Resend Verification Code</span>
-            </button>
-          ) : (
-            <span style={{ color: 'var(--slate-400)', fontSize: '0.8125rem' }}>
-              Resend available in <strong style={{ color: 'var(--slate-700)' }}>{countdown}s</strong>
-            </span>
-          )}
 
           <Link
             to="/auth/login"
             style={{
               fontSize: '0.8125rem',
-              color: 'var(--slate-500)',
-              marginTop: '6px'
+              color: '#94a3b8',
+              textDecoration: 'none',
+              transition: 'color 0.15s ease'
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
           >
-            Back to Sign In
+            &larr; Back to sign in
           </Link>
         </div>
       </div>

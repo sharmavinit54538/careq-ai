@@ -7,6 +7,7 @@ interface AuthLayoutProps {
   subtitle?: string;
   maxWidth?: string | number;
   footerContent?: React.ReactNode;
+  showLogo?: boolean;
 }
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
@@ -14,7 +15,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
   maxWidth = '460px',
-  footerContent
+  footerContent,
+  showLogo = false
 }) => {
   return (
     <div
@@ -47,10 +49,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         }}
       />
 
-      {/* Brand Header */}
-      <div style={{ marginBottom: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <CareQLogo size="md" light showTagline={false} />
-      </div>
+      {/* Brand Header (Optional) */}
+      {showLogo && (
+        <div style={{ marginBottom: '24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+          <CareQLogo size="md" light showTagline={false} />
+        </div>
+      )}
 
       {/* Main Dark Auth Card */}
       <div
@@ -91,7 +95,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div>{children}</div>
       </div>
 
-      {/* Optional Outer Footer Content (e.g. "New to CareQ AI? Create a workspace") */}
+      {/* Optional Outer Footer Content */}
       {footerContent && (
         <div
           style={{

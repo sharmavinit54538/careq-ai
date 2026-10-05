@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface OtpInputProps {
   value: string;
@@ -16,11 +16,11 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   hasError = false
 }) => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(0);
 
   // Initialize input refs array
   useEffect(() => {
     inputsRef.current = inputsRef.current.slice(0, length);
-    // Focus first input on mount
     inputsRef.current[0]?.focus();
   }, [length]);
 
@@ -30,7 +30,6 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   }
 
   const handleChange = (index: number, char: string) => {
-    // Only accept numeric
     const clean = char.replace(/[^0-9]/g, '');
     if (!clean) {
       const newDigits = [...digits];
@@ -53,7 +52,14 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (!digits[index] && index > 0) {
+        const newDigits = [...digits];
+        newDigits[index - 1] = '';
+        onChange(newDigits.join(''));
         inputsRef.current[index - 1]?.focus();
+      } else {
+        const newDigits = [...digits];
+        newDigits[index] = '';
+        onChange(newDigits.join(''));
       }
     } else if (e.key === 'ArrowLeft' && index > 0) {
       inputsRef.current[index - 1]?.focus();
@@ -76,52 +82,67 @@ export const OtpInput: React.FC<OtpInputProps> = ({
     <div
       style={{
         display: 'flex',
-        gap: '10px',
+        gap: '8px',
         justifyContent: 'center',
         alignItems: 'center',
-        margin: '16px 0'
+        margin: '18px 0'
       }}
       onPaste={handlePaste}
     >
-      {digits.map((digit, idx) => (
-        <input
-          key={idx}
-          ref={(el) => {
-            inputsRef.current[idx] = el;
-          }}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={1}
-          value={digit}
-          disabled={disabled}
-          onChange={(e) => handleChange(idx, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(idx, e)}
-          onFocus={(e) => e.target.select()}
-          aria-label={`Digit ${idx + 1} of verification code`}
-          style={{
-            width: '48px',
-            height: '56px',
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            textAlign: 'center',
-            borderRadius: 'var(--radius-md)',
-            border: `2px solid ${
-              hasError
-                ? 'var(--danger-solid)'
-                : digit
-                ? 'var(--primary-600)'
-                : 'var(--slate-200)'
-            }`,
-            background: disabled ? 'var(--slate-100)' : '#ffffff',
-            color: 'var(--slate-900)',
-            outline: 'none',
-            fontFamily: 'var(--font-heading)',
-            boxShadow: digit ? '0 2px 6px rgba(13, 148, 136, 0.15)' : 'none',
-            transition: 'all 0.15s ease'
-          }}
-        />
-      ))}
+      {digits.map((digit, idx) => {
+        const isFocused = focusedIndex === idx;
+        let borderColor = 'rgba(255, 255, 255, 0.12)';
+        let boxShadow = 'none';
+
+        if (hasError) {
+          borderColor = '#ef4444';
+          boxShadow = isFocused ? '0 0 0 3px rgba(239, 68, 68, 0.2)' : 'none';
+        } else if (isFocused) {
+          borderColor = '#38bdf8';
+          boxShadow = '0 0 0 3px rgba(56, 189, 248, 0.2)';
+        } else if (digit) {
+          borderColor = 'rgba(56, 189, 248, 0.45)';
+        }
+
+        return (
+          <input
+            key={idx}
+            ref={(el) => {
+              inputsRef.current[idx] = el;
+            }}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={1}
+            value={digit}
+            disabled={disabled}
+            onChange={(e) => handleChange(idx, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(idx, e)}
+            onFocus={(e) => {
+              setFocusedIndex(idx);
+              e.target.select();
+            }}
+            onBlur={() => setFocusedIndex(null)}
+            aria-label={`Digit ${idx + 1} of verification code`}
+            style={{
+              width: '46px',
+              height: '56px',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              textAlign: 'center',
+              borderRadius: '10px',
+              border: `1.5px solid ${borderColor}`,
+              background: disabled ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.05)',
+              color: '#ffffff',
+              outline: 'none',
+              fontFamily: 'inherit',
+              boxShadow,
+              transition: 'all 0.15s ease',
+              caretColor: '#38bdf8'
+            }}
+          />
+        );
+      })}
     </div>
   );
 };

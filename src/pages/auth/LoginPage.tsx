@@ -5,7 +5,7 @@ import { Input } from '../../components/common/Input';
 import { Checkbox } from '../../components/common/Checkbox';
 import { Alert } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserPlus, Stethoscope } from 'lucide-react';
 import { isValidEmail } from '../../utils/validation';
 
 export const LoginPage: React.FC = () => {
@@ -31,7 +31,7 @@ export const LoginPage: React.FC = () => {
     // Client-side validations
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) {
-      newErrors.email = 'Work email is required.';
+      newErrors.email = 'Email address is required.';
     } else if (!isValidEmail(email)) {
       newErrors.email = 'Please enter a valid email address.';
     }
@@ -82,45 +82,7 @@ export const LoginPage: React.FC = () => {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to your CareQ AI workspace"
-      footerContent={
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            fontSize: '0.875rem'
-          }}
-        >
-          <span style={{ color: '#94a3b8' }}>New to CareQ AI?</span>
-          <Link
-            to="/auth/register/patient"
-            style={{
-              color: '#ffffff',
-              fontWeight: 700,
-              textDecoration: 'none',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#38bdf8')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#ffffff')}
-          >
-            Create a workspace
-          </Link>
-          <span style={{ color: 'rgba(255, 255, 255, 0.25)', margin: '0 4px' }}>&bull;</span>
-          <Link
-            to="/auth/register/doctor"
-            style={{
-              color: '#38bdf8',
-              fontWeight: 600,
-              textDecoration: 'none',
-              fontSize: '0.8125rem'
-            }}
-          >
-            Doctor Portal
-          </Link>
-        </div>
-      }
+      subtitle="Sign in to your CareQ AI account"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {verifiedNotice && (
@@ -149,10 +111,10 @@ export const LoginPage: React.FC = () => {
         )}
 
         <Input
-          label="Work email"
+          label="Email address"
           type="email"
           name="email"
-          placeholder="sharmavinit7348@gmail.com"
+          placeholder="name@example.com"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -190,7 +152,7 @@ export const LoginPage: React.FC = () => {
               onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
               onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
             >
-              Forgot password?
+              Forgot password
             </Link>
           }
         />
@@ -252,6 +214,106 @@ export const LoginPage: React.FC = () => {
           )}
         </button>
       </form>
+
+      {/* Divider & Registration Options inside Card */}
+      <div style={{ marginTop: '24px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '16px',
+            gap: '12px'
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.08)' }} />
+          <span
+            style={{
+              fontSize: '0.75rem',
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              fontWeight: 600
+            }}
+          >
+            Don't have an account?
+          </span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.08)' }} />
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '10px'
+          }}
+        >
+          <Link
+            to="/auth/register/patient"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#e2e8f0',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)';
+              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.color = '#e2e8f0';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <UserPlus size={15} style={{ color: '#2dd4bf' }} />
+            <span>Register Patient</span>
+          </Link>
+
+          <Link
+            to="/auth/register/doctor"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'rgba(56, 189, 248, 0.05)',
+              border: '1px solid rgba(56, 189, 248, 0.15)',
+              color: '#38bdf8',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(56, 189, 248, 0.12)';
+              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(56, 189, 248, 0.05)';
+              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.15)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <Stethoscope size={15} style={{ color: '#38bdf8' }} />
+            <span>Doctor Portal</span>
+          </Link>
+        </div>
+      </div>
     </AuthLayout>
   );
 };
