@@ -5,22 +5,15 @@ import {
   Search,
   Bell,
   MessageSquare,
-  ChevronDown,
-  UserCheck,
-  Settings,
-  LogOut,
-  ShieldCheck,
-  Clock,
-  X,
-  Calendar,
-  Users,
-  FileText
+  Sun,
+  Moon,
+  X
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import type { DoctorNotification } from '../../types/doctor';
 
 interface DoctorHeaderProps {
-  pageTitle: string;
+  pageTitle?: string;
   onOpenMobileSidebar: () => void;
   notifications: DoctorNotification[];
   onMarkNotificationAsRead: (id: string) => void;
@@ -28,29 +21,23 @@ interface DoctorHeaderProps {
 }
 
 export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
-  pageTitle,
   onOpenMobileSidebar,
   notifications,
   onMarkNotificationAsRead,
   onMarkAllNotificationsAsRead
 }) => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
 
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   // Close popovers on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileDropdownOpen(false);
-      }
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotificationsOpen(false);
       }
@@ -60,18 +47,6 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  const isApproved = user?.doctorProfile?.verificationStatus === 'approved';
-
-  const handleSignOut = async () => {
-    setProfileDropdownOpen(false);
-    try {
-      await logout();
-    } catch {
-      // ignore
-    } finally {
-      navigate('/auth/login', { replace: true });
-    }
-  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +58,8 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
-      {/* Left: Mobile hamburger & Active Page Title */}
+    <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      {/* Left: Mobile hamburger */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -94,25 +69,10 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
         >
           <Menu size={22} />
         </button>
-
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>{pageTitle}</span>
-            {isApproved ? (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                <ShieldCheck size={12} /> Verified Practice
-              </span>
-            ) : (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                <Clock size={12} /> Pending Verification
-              </span>
-            )}
-          </h1>
-        </div>
       </div>
 
-      {/* Right: Search, Notifications, Telehealth, Doctor Profile */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* Right: Search, Theme Toggle, Consultations, Notifications */}
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Global Search */}
         <div className="relative hidden md:block">
           <form onSubmit={handleSearchSubmit}>
@@ -142,14 +102,29 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
           <Search size={20} />
         </button>
 
-        {/* Telehealth Consultations Link */}
+        {/* Theme Toggle (Light / Night Mode) */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Night Mode'}
+          aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Night Mode'}
+        >
+          {isDark ? (
+            <Sun className="h-5 w-5 text-amber-400" />
+          ) : (
+            <Moon className="h-5 w-5 text-slate-600" />
+          )}
+        </button>
+
+        {/* Consultations / Messages Quick Link */}
         <Link
           to="/doctor/consultations"
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100/80 rounded-xl border border-teal-200 transition-colors"
-          title="Go to Consultations Room"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+          title="Teleconsultations & Messages"
         >
-          <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-          <span>Consultations</span>
+          <MessageSquare className="h-5 w-5" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
         </Link>
 
         {/* Notifications Popover */}
@@ -157,7 +132,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
           <button
             type="button"
             onClick={() => setNotificationsOpen((prev) => !prev)}
-            className="relative p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
             aria-label="Notifications"
           >
             <Bell size={20} />
@@ -243,87 +218,6 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
             </div>
           )}
         </div>
-
-        {/* Doctor Profile Menu */}
-        <div className="relative" ref={profileRef}>
-          <button
-            type="button"
-            onClick={() => setProfileDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2.5 p-1.5 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-            aria-expanded={profileDropdownOpen}
-          >
-            <img
-              src={
-                user?.avatarUrl ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Dr. Doctor')}&background=0d9488&color=fff`
-              }
-              alt={user?.name}
-              className="w-9 h-9 rounded-full object-cover border-2 border-teal-500"
-            />
-            <div className="hidden xl:flex flex-col text-left">
-              <span className="text-sm font-bold text-slate-900 leading-tight">
-                {user?.name || 'Dr. Evelyn Reed'}
-              </span>
-              <span className="text-[11px] font-medium text-slate-500 leading-tight">
-                {user?.doctorProfile?.specialization || 'Cardiology & Internal Medicine'}
-              </span>
-            </div>
-            <ChevronDown size={15} className="text-slate-400 hidden sm:block" />
-          </button>
-
-          {profileDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-4 py-3 border-b border-slate-100">
-                <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200">
-                  <ShieldCheck size={13} />
-                  <span>{user?.doctorProfile?.qualification || 'Licensed MD'}</span>
-                </div>
-              </div>
-
-              <div className="py-1">
-                <Link
-                  to="/doctor/profile"
-                  onClick={() => setProfileDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                >
-                  <UserCheck size={16} className="text-slate-400" />
-                  <span>My Profile</span>
-                </Link>
-
-                <Link
-                  to="/doctor/schedule"
-                  onClick={() => setProfileDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                >
-                  <Calendar size={16} className="text-slate-400" />
-                  <span>Schedule & Availability</span>
-                </Link>
-
-                <Link
-                  to="/doctor/settings"
-                  onClick={() => setProfileDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                >
-                  <Settings size={16} className="text-slate-400" />
-                  <span>Settings</span>
-                </Link>
-              </div>
-
-              <div className="border-t border-slate-100 pt-1 mt-1">
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 w-full text-left font-medium cursor-pointer"
-                >
-                  <LogOut size={16} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Mobile Search Overlay */}
@@ -342,7 +236,7 @@ export const DoctorHeader: React.FC<DoctorHeaderProps> = ({
             <button
               type="button"
               onClick={() => setSearchOpen(false)}
-              className="p-1 text-slate-400 hover:text-slate-600"
+              className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
             >
               <X size={18} />
             </button>

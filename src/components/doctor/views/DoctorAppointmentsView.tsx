@@ -2,18 +2,14 @@ import React, { useState } from 'react';
 import {
   Search,
   Calendar,
-  Filter,
   Video,
   Clock,
   CheckCircle2,
   XCircle,
   AlertCircle,
-  ChevronRight,
-  User,
   RotateCcw
 } from 'lucide-react';
 import type { DoctorAppointment, AppointmentStatus } from '../../../types/doctor';
-import { useAuth } from '../../../context/AuthContext';
 
 interface DoctorAppointmentsViewProps {
   appointments: DoctorAppointment[];
@@ -32,8 +28,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
   onCancelAppointment,
   onRescheduleAppointment
 }) => {
-  const { user } = useAuth();
-  const isApproved = user?.doctorProfile?.verificationStatus === 'approved';
+  const isApproved = true;
 
   const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'today' | 'pending' | 'completed' | 'cancelled'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');

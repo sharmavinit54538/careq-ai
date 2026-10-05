@@ -24,7 +24,6 @@ import type {
   DoctorPrescription,
   DoctorMedicalRecord
 } from '../../../types/doctor';
-import { useAuth } from '../../../context/AuthContext';
 
 interface DoctorPatientDetailViewProps {
   patient: DoctorPatient | null;
@@ -48,8 +47,7 @@ export const DoctorPatientDetailView: React.FC<DoctorPatientDetailViewProps> = (
   onAddNote
 }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isApproved = user?.doctorProfile?.verificationStatus === 'approved';
+  const isApproved = true;
 
   const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'prescriptions' | 'records' | 'appointments'>('overview');
   const [noteDiagnosis, setNoteDiagnosis] = useState('');

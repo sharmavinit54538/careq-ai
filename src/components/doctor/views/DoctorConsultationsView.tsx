@@ -7,26 +7,17 @@ import {
   VideoOff,
   PhoneOff,
   Monitor,
-  Share2,
   AlertTriangle,
-  Clock,
   Pill,
   Save,
   CheckCircle2,
-  Calendar,
-  Users,
-  FileText,
-  ShieldCheck,
-  ChevronRight,
-  Maximize2
+  ShieldCheck
 } from 'lucide-react';
 import type {
   DoctorAppointment,
   DoctorPatient,
-  DoctorPrescription,
   DoctorMedicalRecord
 } from '../../../types/doctor';
-import { useAuth } from '../../../context/AuthContext';
 
 interface DoctorConsultationsViewProps {
   consultations: DoctorAppointment[];
@@ -47,8 +38,6 @@ export const DoctorConsultationsView: React.FC<DoctorConsultationsViewProps> = (
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const isApproved = user?.doctorProfile?.verificationStatus === 'approved';
 
   // Check if an appointment was passed via navigation state
   const initialAppointment = (location.state as any)?.appointment as DoctorAppointment | undefined;
@@ -139,30 +128,6 @@ export const DoctorConsultationsView: React.FC<DoctorConsultationsViewProps> = (
     setSaveSuccessNotice(true);
     setTimeout(() => setSaveSuccessNotice(false), 3000);
   };
-
-  if (!isApproved) {
-    return (
-      <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs space-y-4">
-        <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl mx-auto flex items-center justify-center">
-          <AlertTriangle size={32} />
-        </div>
-        <h2 className="text-xl font-extrabold text-slate-900">
-          Telehealth Consultations Disabled Pending Verification
-        </h2>
-        <p className="text-sm text-slate-600 max-w-lg mx-auto">
-          In compliance with medical licensing and telehealth practice standards, live video/audio consultations
-          are locked until administrative verification of your state credentials is approved.
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/doctor/dashboard')}
-          className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors inline-block cursor-pointer"
-        >
-          Return to Dashboard Overview
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

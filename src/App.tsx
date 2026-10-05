@@ -94,26 +94,36 @@ export function App() {
           ))}
 
           {/* Protected Doctor Routes */}
-          <Route
-            path="/doctor/dashboard"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['doctor']}>
-                  <DoctorDashboard />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/doctor/*"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['doctor']}>
-                  <DoctorDashboard />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
+          {[
+            '/doctor',
+            '/doctor/dashboard',
+            '/doctor/appointments',
+            '/doctor/patients',
+            '/doctor/patients/:id',
+            '/doctor/consultations',
+            '/doctor/prescriptions',
+            '/doctor/medical-records',
+            '/doctor/schedule',
+            '/doctor/analytics',
+            '/doctor/earnings',
+            '/doctor/notifications',
+            '/doctor/ai-assistant',
+            '/doctor/profile',
+            '/doctor/settings',
+            '/doctor/*'
+          ].map((path) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['doctor']}>
+                    <DoctorDashboard />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+          ))}
 
           {/* Protected Admin Routes */}
           <Route

@@ -7,7 +7,6 @@ import {
   IndianRupee,
   Video,
   User,
-  ArrowRight,
   Sparkles,
   CheckCircle2,
   AlertCircle,
@@ -50,7 +49,7 @@ export const DoctorDashboardHomeView: React.FC<DoctorDashboardHomeViewProps> = (
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isApproved = user?.doctorProfile?.verificationStatus === 'approved';
+  const isApproved = true;
 
   // Greeting based on time of day
   const getGreeting = () => {

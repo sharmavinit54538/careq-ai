@@ -1,405 +1,474 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { CareQLogo } from '../../components/common/CareQLogo';
-import { Button } from '../../components/common/Button';
-import { Alert } from '../../components/common/Alert';
-import {
-  Clock,
-  CheckCircle,
-  Lock,
-  LogOut,
-  FileText,
-  Video,
-  ShieldCheck,
-  RotateCw
-} from 'lucide-react';
+import { doctorService } from '../../services/doctorService';
+import type {
+  DoctorAppointment,
+  DoctorPatient,
+  DoctorPrescription,
+  DoctorMedicalRecord,
+  DoctorScheduleConfig,
+  DoctorEarnings,
+  DoctorAnalytics,
+  DoctorNotification,
+  DoctorDashboardStats,
+  PrescriptionMedicineItem
+} from '../../types/doctor';
+
+// Doctor Shared Components
+import { DoctorSidebar } from '../../components/doctor/DoctorSidebar';
+import { DoctorHeader } from '../../components/doctor/DoctorHeader';
+
+// Doctor Subviews
+import { DoctorDashboardHomeView } from '../../components/doctor/views/DoctorDashboardHomeView';
+import { DoctorAppointmentsView } from '../../components/doctor/views/DoctorAppointmentsView';
+import { DoctorPatientsView } from '../../components/doctor/views/DoctorPatientsView';
+import { DoctorPatientDetailView } from '../../components/doctor/views/DoctorPatientDetailView';
+import { DoctorConsultationsView } from '../../components/doctor/views/DoctorConsultationsView';
+import { DoctorPrescriptionsView } from '../../components/doctor/views/DoctorPrescriptionsView';
+import { DoctorMedicalRecordsView } from '../../components/doctor/views/DoctorMedicalRecordsView';
+import { DoctorScheduleView } from '../../components/doctor/views/DoctorScheduleView';
+import { DoctorAnalyticsView } from '../../components/doctor/views/DoctorAnalyticsView';
+import { DoctorEarningsView } from '../../components/doctor/views/DoctorEarningsView';
+import { DoctorNotificationsView } from '../../components/doctor/views/DoctorNotificationsView';
+import { DoctorAiAssistantView } from '../../components/doctor/views/DoctorAiAssistantView';
+import { DoctorProfileView } from '../../components/doctor/views/DoctorProfileView';
+import { DoctorSettingsView } from '../../components/doctor/views/DoctorSettingsView';
+
+// Doctor Modals
+import { CreatePrescriptionModal } from '../../components/doctor/modals/CreatePrescriptionModal';
+import { AppointmentDetailsModal } from '../../components/doctor/modals/AppointmentDetailsModal';
+import { RescheduleAppointmentModal } from '../../components/doctor/modals/RescheduleAppointmentModal';
+import { ViewRecordModal } from '../../components/doctor/modals/ViewRecordModal';
+import { EditDoctorProfileModal } from '../../components/doctor/modals/EditDoctorProfileModal';
+import { ViewPrescriptionModal } from '../../components/doctor/modals/ViewPrescriptionModal';
 
 export const DoctorDashboard: React.FC = () => {
-  const { user, logout, refreshUser } = useAuth();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user, refreshUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const doctorProfile = user?.doctorProfile;
-  const status = doctorProfile?.verificationStatus || 'pending';
-  const isApproved = status === 'approved';
+  // Mobile drawer and sidebar collapse
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refreshUser();
-    setTimeout(() => setIsRefreshing(false), 500);
+  // Core Data States
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  const [stats, setStats] = useState<DoctorDashboardStats | null>(null);
+  const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
+  const [patients, setPatients] = useState<DoctorPatient[]>([]);
+  const [prescriptions, setPrescriptions] = useState<DoctorPrescription[]>([]);
+  const [records, setRecords] = useState<DoctorMedicalRecord[]>([]);
+  const [schedule, setSchedule] = useState<DoctorScheduleConfig | null>(null);
+  const [analytics, setAnalytics] = useState<DoctorAnalytics | null>(null);
+  const [earnings, setEarnings] = useState<DoctorEarnings | null>(null);
+  const [notifications, setNotifications] = useState<DoctorNotification[]>([]);
+
+  // Modals
+  const [isCreateRxModalOpen, setIsCreateRxModalOpen] = useState(false);
+  const [selectedPatientForRx, setSelectedPatientForRx] = useState<DoctorPatient | null>(null);
+
+  const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<DoctorAppointment | null>(null);
+  const [appointmentToReschedule, setAppointmentToReschedule] = useState<DoctorAppointment | null>(null);
+  const [recordToView, setRecordToView] = useState<DoctorMedicalRecord | null>(null);
+  const [selectedPrescriptionToView, setSelectedPrescriptionToView] = useState<DoctorPrescription | null>(null);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+
+  // Load All Doctor Data
+  const loadDoctorData = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    setIsError(false);
+
+    try {
+      const doctorId = user.id;
+      const [
+        dashboardStats,
+        appointmentsData,
+        patientsData,
+        prescriptionsData,
+        recordsData,
+        scheduleData,
+        analyticsData,
+        earningsData,
+        notificationsData
+      ] = await Promise.all([
+        doctorService.getDoctorStats(doctorId),
+        doctorService.getAppointments(doctorId),
+        doctorService.getPatients(doctorId),
+        doctorService.getPrescriptions(doctorId),
+        doctorService.getMedicalRecords(doctorId),
+        doctorService.getSchedule(doctorId),
+        doctorService.getAnalytics(doctorId),
+        doctorService.getEarnings(doctorId),
+        doctorService.getNotifications(doctorId)
+      ]);
+
+      setStats(dashboardStats);
+      setAppointments(appointmentsData);
+      setPatients(patientsData);
+      setPrescriptions(prescriptionsData);
+      setRecords(recordsData);
+      setSchedule(scheduleData);
+      setAnalytics(analyticsData);
+      setEarnings(earningsData);
+      setNotifications(notificationsData);
+    } catch {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadDoctorData();
+  }, [loadDoctorData]);
+
+  // Handlers
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    if (!user) return;
+    await doctorService.updateAppointmentStatus(user.id, appointmentId, 'confirmed');
+    await loadDoctorData();
   };
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
-      {/* Navigation Header */}
-      <header
-        style={{
-          background: '#ffffff',
-          borderBottom: '1px solid var(--slate-200)',
-          padding: '0 24px',
-          height: '72px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40
+  const handleCancelAppointment = async (appointmentId: string) => {
+    if (!user) return;
+    await doctorService.updateAppointmentStatus(user.id, appointmentId, 'cancelled');
+    await loadDoctorData();
+  };
+
+  const handleRescheduleAppointment = async (
+    appointmentId: string,
+    newDate: string,
+    newTime: string
+  ) => {
+    if (!user) return;
+    await doctorService.rescheduleAppointment(user.id, appointmentId, newDate, newTime);
+    await loadDoctorData();
+  };
+
+  const handleSaveConsultationNotes = async (
+    patientId: string,
+    diagnosis: string,
+    notes: string,
+    followUpDate?: string
+  ) => {
+    if (!user) return;
+    await doctorService.createConsultationNotes(user.id, patientId, diagnosis, notes, followUpDate);
+    await loadDoctorData();
+  };
+
+  const handleCompleteConsultation = async (appointmentId: string) => {
+    if (!user) return;
+    await doctorService.updateAppointmentStatus(user.id, appointmentId, 'completed');
+    await loadDoctorData();
+  };
+
+  const handleSavePrescription = async (
+    patient: DoctorPatient,
+    diagnosis: string,
+    notes: string,
+    medicines: PrescriptionMedicineItem[],
+    followUpDate: string,
+    status: 'draft' | 'issued'
+  ) => {
+    if (!user) return;
+    await doctorService.createPrescription(user.id, {
+      patientId: patient.id,
+      patientName: patient.name,
+      patientAge: patient.age,
+      patientGender: patient.gender,
+      date: new Date().toISOString().split('T')[0],
+      status,
+      diagnosis,
+      clinicalNotes: notes,
+      medicines,
+      followUpDate,
+      issuedAt: status === 'issued' ? new Date().toISOString().split('T')[0] : undefined
+    });
+    await loadDoctorData();
+  };
+
+  const handleIssueDraft = async (prescriptionId: string) => {
+    if (!user) return;
+    await doctorService.updatePrescriptionStatus(user.id, prescriptionId, 'issued');
+    await loadDoctorData();
+  };
+
+  const handleSaveSchedule = async (newSchedule: DoctorScheduleConfig) => {
+    if (!user) return;
+    await doctorService.updateAvailability(user.id, newSchedule);
+    await loadDoctorData();
+  };
+
+  const handleMarkNotificationRead = async (id: string) => {
+    if (!user) return;
+    await doctorService.markNotificationAsRead(user.id, id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    if (!user) return;
+    await doctorService.markAllNotificationsAsRead(user.id);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const handleClearAllNotifications = async () => {
+    if (!user) return;
+    await doctorService.clearAllNotifications(user.id);
+    setNotifications([]);
+  };
+
+  const handleSaveProfile = async (updates: any) => {
+    if (!user) return;
+    await doctorService.updateDoctorProfile(user.id, updates);
+    await refreshUser();
+    await loadDoctorData();
+  };
+
+  // Determine active view based on route path
+  const pathname = location.pathname;
+  let pageTitle = 'Dashboard';
+  let currentView: React.ReactNode = null;
+
+  // Extract patient ID if path is /doctor/patients/:id
+  const patientDetailMatch = pathname.match(/^\/doctor\/patients\/([^/]+)$/);
+  const patientDetailId = patientDetailMatch ? patientDetailMatch[1] : null;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayAppointments = appointments.filter((a) => a.date === todayStr);
+
+  if (patientDetailId) {
+    pageTitle = 'Patient Clinical Record';
+    const currentPatient = patients.find((p) => p.id === patientDetailId) || null;
+    currentView = (
+      <DoctorPatientDetailView
+        patient={currentPatient}
+        appointments={appointments}
+        prescriptions={prescriptions}
+        records={records}
+        isLoading={isLoading}
+        onStartConsultation={(p) => {
+          navigate('/doctor/consultations', {
+            state: {
+              appointment: appointments.find((a) => a.patientId === p.id)
+            }
+          });
         }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <CareQLogo size="md" />
-          <span
-            style={{
-              padding: '3px 10px',
-              borderRadius: 'var(--radius-full)',
-              background: '#eff6ff',
-              color: '#1e40af',
-              border: '1px solid #bfdbfe',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}
-          >
-            Physician Portal
-          </span>
-        </div>
+        onCreatePrescription={(p) => {
+          setSelectedPatientForRx(p);
+          setIsCreateRxModalOpen(true);
+        }}
+        onAddNote={handleSaveConsultationNotes}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/appointments')) {
+    pageTitle = 'Appointments';
+    currentView = (
+      <DoctorAppointmentsView
+        appointments={appointments}
+        onStartConsultation={(apt) => {
+          navigate('/doctor/consultations', { state: { appointment: apt } });
+        }}
+        onViewDetails={(apt) => setSelectedAppointmentDetails(apt)}
+        onConfirmAppointment={handleConfirmAppointment}
+        onCancelAppointment={handleCancelAppointment}
+        onRescheduleAppointment={(apt) => setAppointmentToReschedule(apt)}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/patients')) {
+    pageTitle = 'My Patients';
+    currentView = (
+      <DoctorPatientsView
+        patients={patients}
+        isLoading={isLoading}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/consultations')) {
+    pageTitle = 'Consultations';
+    currentView = (
+      <DoctorConsultationsView
+        consultations={appointments.filter((a) => a.status === 'confirmed' || a.status === 'scheduled')}
+        patients={patients}
+        records={records}
+        onSaveNotes={handleSaveConsultationNotes}
+        onOpenCreatePrescription={(p) => {
+          setSelectedPatientForRx(p);
+          setIsCreateRxModalOpen(true);
+        }}
+        onCompleteConsultation={handleCompleteConsultation}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/prescriptions')) {
+    pageTitle = 'Prescriptions';
+    currentView = (
+      <DoctorPrescriptionsView
+        prescriptions={prescriptions}
+        onOpenCreateModal={() => {
+          setSelectedPatientForRx(null);
+          setIsCreateRxModalOpen(true);
+        }}
+        onIssueDraft={handleIssueDraft}
+        onViewPrescriptionDetails={(rx) => setSelectedPrescriptionToView(rx)}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/medical-records')) {
+    pageTitle = 'Medical Records';
+    currentView = (
+      <DoctorMedicalRecordsView
+        records={records}
+        onViewRecord={(rec) => setRecordToView(rec)}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/schedule')) {
+    pageTitle = 'Schedule & Availability';
+    currentView = schedule ? (
+      <DoctorScheduleView
+        schedule={schedule}
+        onSaveSchedule={handleSaveSchedule}
+      />
+    ) : null;
+  } else if (pathname.startsWith('/doctor/analytics')) {
+    pageTitle = 'Practice Analytics';
+    currentView = (
+      <DoctorAnalyticsView
+        analytics={analytics}
+        isLoading={isLoading}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/earnings')) {
+    pageTitle = 'Earnings & Payouts';
+    currentView = (
+      <DoctorEarningsView
+        earnings={earnings}
+        isLoading={isLoading}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/notifications')) {
+    pageTitle = 'Notifications';
+    currentView = (
+      <DoctorNotificationsView
+        notifications={notifications}
+        onMarkAsRead={handleMarkNotificationRead}
+        onMarkAllAsRead={handleMarkAllNotificationsRead}
+        onClearAll={handleClearAllNotifications}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/ai-assistant')) {
+    pageTitle = 'CareQ AI Doctor Assistant';
+    currentView = <DoctorAiAssistantView />;
+  } else if (pathname.startsWith('/doctor/profile')) {
+    pageTitle = 'My Profile';
+    currentView = (
+      <DoctorProfileView
+        onOpenEditModal={() => setIsEditProfileModalOpen(true)}
+      />
+    );
+  } else if (pathname.startsWith('/doctor/settings')) {
+    pageTitle = 'Settings';
+    currentView = <DoctorSettingsView />;
+  } else {
+    // Default Main Dashboard
+    pageTitle = 'Doctor Dashboard';
+    currentView = (
+      <DoctorDashboardHomeView
+        stats={stats}
+        todayAppointments={todayAppointments}
+        recentPatients={patients}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={loadDoctorData}
+        onStartConsultation={(apt) => {
+          navigate('/doctor/consultations', { state: { appointment: apt } });
+        }}
+        onViewAppointmentDetails={(apt) => setSelectedAppointmentDetails(apt)}
+      />
+    );
+  }
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            isLoading={isRefreshing}
-            leftIcon={<RotateCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
-          >
-            Refresh Status
-          </Button>
+  const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img
-              src={
-                user?.avatarUrl ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=0284c7&color=fff`
-              }
-              alt={user?.name}
-              style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--slate-800)' }}>
-                {user?.name}
-              </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
-                {doctorProfile?.specialization || 'Licensed Physician'}
-              </span>
-            </div>
-          </div>
+  return (
+    <div className="min-h-screen bg-slate-50 flex text-slate-800 antialiased overflow-x-hidden">
+      {/* Sidebar: Desktop & Mobile Drawer */}
+      <DoctorSidebar
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        unreadCount={unreadNotificationsCount}
+      />
 
-          <Button variant="ghost" size="sm" onClick={() => logout()} leftIcon={<LogOut size={16} />}>
-            Sign Out
-          </Button>
-        </div>
-      </header>
+      {/* Main Layout Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header */}
+        <DoctorHeader
+          pageTitle={pageTitle}
+          onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+          notifications={notifications}
+          onMarkNotificationAsRead={handleMarkNotificationRead}
+          onMarkAllNotificationsAsRead={handleMarkAllNotificationsRead}
+        />
 
-      {/* Main Content */}
-      <main style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '32px 24px', flex: 1 }}>
-        {/* Verification Status Alert Banner */}
-        {!isApproved && (
-          <div style={{ marginBottom: '24px' }}>
-            {status === 'pending' ? (
-              <div
-                style={{
-                  padding: '18px 22px',
-                  borderRadius: 'var(--radius-lg)',
-                  background: '#fffbeb',
-                  border: '1.5px solid #fde68a',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '16px'
-                }}
-              >
-                <Clock size={24} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#92400e', marginBottom: '4px' }}>
-                    Doctor Account Pending Credential Verification
-                  </div>
-                  <p style={{ fontSize: '0.875rem', color: '#b45309', lineHeight: 1.5, marginBottom: '10px' }}>
-                    Your state medical registration (<strong>{doctorProfile?.medicalRegNo}</strong>) and uploaded verification
-                    documents are currently being audited by the CareQ AI medical governance board. Telehealth consultations and
-                    e-prescriptions remain locked until administrative approval.
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#78350f' }}>
-                    <span>Estimated turnaround: 2 to 4 business hours</span>
-                    &bull;
-                    <span style={{ color: '#0d9488', fontWeight: 600 }}>
-                      Tip: You can log into the Admin account (admin@careq.ai) to approve this application instantly!
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : status === 'rejected' ? (
-              <Alert
-                type="error"
-                title="Credential Verification Rejected"
-                message={
-                  doctorProfile?.rejectionReason ||
-                  'The submitted medical documentation could not be verified with the state board. Please contact compliance@careq.ai.'
-                }
-              />
-            ) : null}
-          </div>
-        )}
+        {/* Dynamic Doctor Content Body */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          {currentView}
+        </main>
+      </div>
 
-        {/* Doctor Header Banner */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #0369a1 100%)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '32px 36px',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '20px',
-            boxShadow: 'var(--shadow-lg)',
-            marginBottom: '32px'
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  borderRadius: 'var(--radius-full)',
-                  background: isApproved ? 'rgba(52, 211, 153, 0.25)' : 'rgba(251, 191, 36, 0.25)',
-                  color: isApproved ? '#34d399' : '#fbbf24',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  border: isApproved ? '1px solid rgba(52, 211, 153, 0.4)' : '1px solid rgba(251, 191, 36, 0.4)'
-                }}
-              >
-                {isApproved ? <CheckCircle size={14} /> : <Clock size={14} />}
-                Verification Status: {status.toUpperCase()}
-              </span>
+      {/* Interactive Modals */}
+      <CreatePrescriptionModal
+        isOpen={isCreateRxModalOpen}
+        onClose={() => setIsCreateRxModalOpen(false)}
+        patients={patients}
+        initialPatient={selectedPatientForRx}
+        onSavePrescription={handleSavePrescription}
+      />
 
-              <span style={{ fontSize: '0.8125rem', color: '#cbd5e1' }}>
-                Reg: {doctorProfile?.medicalRegNo}
-              </span>
-            </div>
+      <AppointmentDetailsModal
+        isOpen={!!selectedAppointmentDetails}
+        onClose={() => setSelectedAppointmentDetails(null)}
+        appointment={selectedAppointmentDetails}
+        onConfirm={handleConfirmAppointment}
+        onCancel={handleCancelAppointment}
+        onReschedule={(apt) => {
+          setSelectedAppointmentDetails(null);
+          setAppointmentToReschedule(apt);
+        }}
+        onStartConsultation={(apt) => {
+          setSelectedAppointmentDetails(null);
+          navigate('/doctor/consultations', { state: { appointment: apt } });
+        }}
+      />
 
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
-              {user?.name}
-            </h1>
-            <p style={{ color: '#e0f2fe', fontSize: '0.9375rem' }}>
-              {doctorProfile?.qualification} &bull; {doctorProfile?.specialization} &bull; {doctorProfile?.hospitalName}
-            </p>
-          </div>
+      <RescheduleAppointmentModal
+        isOpen={!!appointmentToReschedule}
+        onClose={() => setAppointmentToReschedule(null)}
+        appointment={appointmentToReschedule}
+        onSaveReschedule={handleRescheduleAppointment}
+      />
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Button
-              variant="outline"
-              size="md"
-              disabled={!isApproved}
-              style={{
-                background: isApproved ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
-                color: isApproved ? '#0369a1' : '#94a3b8',
-                border: 'none',
-                cursor: isApproved ? 'pointer' : 'not-allowed'
-              }}
-              leftIcon={isApproved ? <Video size={16} /> : <Lock size={16} />}
-            >
-              {isApproved ? 'Start Consultation Room' : 'Consultations Locked'}
-            </Button>
-            <Button
-              variant="secondary"
-              size="md"
-              disabled={!isApproved}
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                cursor: isApproved ? 'pointer' : 'not-allowed'
-              }}
-              leftIcon={isApproved ? <FileText size={16} /> : <Lock size={16} />}
-            >
-              Issue Prescription
-            </Button>
-          </div>
-        </div>
+      <ViewRecordModal
+        isOpen={!!recordToView}
+        onClose={() => setRecordToView(null)}
+        record={recordToView}
+      />
 
-        {/* Doctor Content Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-          {/* Left Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Consultation Features & Patient Queue */}
-            <div
-              style={{
-                background: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                border: '1px solid var(--slate-200)',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '16px' }}>
-                Today's Scheduled Consultations
-              </h3>
+      <ViewPrescriptionModal
+        isOpen={!!selectedPrescriptionToView}
+        onClose={() => setSelectedPrescriptionToView(null)}
+        prescription={selectedPrescriptionToView}
+      />
 
-              {!isApproved ? (
-                <div
-                  style={{
-                    padding: '32px 20px',
-                    textAlign: 'center',
-                    background: 'var(--slate-50)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px dashed var(--slate-300)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}
-                >
-                  <Lock size={32} color="var(--slate-400)" />
-                  <div style={{ fontWeight: 700, color: 'var(--slate-800)' }}>
-                    Patient Consultation Queue is Disabled
-                  </div>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--slate-500)', maxWidth: '420px' }}>
-                    As required by healthcare compliance regulations, your clinical license must be verified
-                    before accepting patient appointments.
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '14px 16px',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'var(--slate-50)',
-                      border: '1px solid var(--slate-200)'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 700, color: 'var(--slate-900)' }}>Sarah Jenkins (Follow-up)</div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)' }}>
-                        10:30 AM &bull; Hypertension &amp; Vitals Review &bull; AI Triage: Low Risk
-                      </div>
-                    </div>
-                    <Button variant="primary" size="sm" leftIcon={<Video size={14} />}>
-                      Join Video Call
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Uploaded Verification Documents Card */}
-            <div
-              style={{
-                background: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                border: '1px solid var(--slate-200)',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '16px' }}>
-                Submitted Verification Documents
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {doctorProfile?.documents && doctorProfile.documents.length > 0 ? (
-                  doctorProfile.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 16px',
-                        borderRadius: 'var(--radius-md)',
-                        background: 'var(--slate-50)',
-                        border: '1px solid var(--slate-200)',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <FileText size={20} color="var(--primary-600)" />
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--slate-800)' }}>{doc.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
-                            {doc.size} &bull; Uploaded {doc.uploadedAt}
-                          </div>
-                        </div>
-                      </div>
-
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          padding: '3px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          background: doc.verified ? '#ecfdf5' : '#fffbeb',
-                          color: doc.verified ? '#065f46' : '#92400e',
-                          border: doc.verified ? '1px solid #a7f3d0' : '1px solid #fde68a'
-                        }}
-                      >
-                        {doc.verified ? 'Verified' : 'Pending Audit'}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ color: 'var(--slate-500)', fontSize: '0.875rem' }}>
-                    No documents on record.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Credential Profile Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div
-              style={{
-                background: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                border: '1px solid var(--slate-200)',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <h3 style={{ fontSize: '1.0625rem', fontWeight: 700, marginBottom: '16px' }}>
-                Board Registration Record
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.875rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--slate-100)', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--slate-500)' }}>Medical Reg No.</span>
-                  <span style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{doctorProfile?.medicalRegNo}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--slate-100)', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--slate-500)' }}>Clinical Experience</span>
-                  <span style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{doctorProfile?.experienceYears} Years</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--slate-100)', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--slate-500)' }}>Primary Hospital</span>
-                  <span style={{ fontWeight: 600, color: 'var(--slate-900)' }}>{doctorProfile?.hospitalName}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px' }}>
-                  <span style={{ color: 'var(--slate-500)' }}>Email Verified</span>
-                  <span style={{ fontWeight: 700, color: 'var(--success-solid)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <ShieldCheck size={14} /> Confirmed
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      <EditDoctorProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        onSaveProfile={handleSaveProfile}
+      />
     </div>
   );
 };

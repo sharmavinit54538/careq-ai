@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  BarChart3,
+  Clock,
   TrendingUp,
   Users,
   CheckCircle2,

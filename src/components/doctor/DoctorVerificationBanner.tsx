@@ -1,5 +1,4 @@
-import React from 'react';
-import { Clock, AlertTriangle, ShieldX, CheckCircle, ExternalLink } from 'lucide-react';
+import { Clock, AlertTriangle, ShieldX } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface DoctorVerificationBannerProps {

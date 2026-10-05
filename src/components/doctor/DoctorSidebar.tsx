@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,17 +10,17 @@ import {
   Clock,
   BarChart3,
   IndianRupee,
-  Bell,
   Sparkles,
-  UserCheck,
+  User,
   Settings,
   LogOut,
   X,
-  PanelLeftClose,
-  PanelLeftOpen
+  PanelLeft,
+  Sun,
+  Moon
 } from 'lucide-react';
-import { CareQLogo } from '../common/CareQLogo';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface DoctorSidebarProps {
   mobileOpen?: boolean;
@@ -30,31 +30,46 @@ interface DoctorSidebarProps {
   unreadCount?: number;
 }
 
-interface NavItemConfig {
+interface NavItem {
   name: string;
   path: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  badge?: number;
+  icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
   isAi?: boolean;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItemConfig[];
+  badge?: number;
 }
 
 export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({
   mobileOpen = false,
   onCloseMobile,
-  collapsed = false,
+  collapsed: externalCollapsed,
   onToggleCollapse,
-  unreadCount = 0
+  unreadCount: _unreadCount = 0
 }) => {
-  const { user, logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Prevent background scroll when mobile drawer is open
+  const [avatarError, setAvatarError] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Close profile menu on route change
+  useEffect(() => {
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
+
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setInternalCollapsed((prev) => !prev);
+    }
+  };
+
+  // Lock background scroll when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -66,7 +81,7 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({
     };
   }, [mobileOpen]);
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
     try {
       await logout();
     } catch {
@@ -76,247 +91,393 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({
     }
   };
 
-  const navSections: NavSection[] = [
-    {
-      title: 'CLINICAL MANAGEMENT',
-      items: [
-        { name: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
-        { name: 'Appointments', path: '/doctor/appointments', icon: Calendar },
-        { name: 'My Patients', path: '/doctor/patients', icon: Users },
-        { name: 'Consultations', path: '/doctor/consultations', icon: Video },
-        { name: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
-        { name: 'Medical Records', path: '/doctor/medical-records', icon: FileText },
-        { name: 'Schedule & Availability', path: '/doctor/schedule', icon: Clock }
-      ]
-    },
-    {
-      title: 'PRACTICE',
-      items: [
-        { name: 'Analytics', path: '/doctor/analytics', icon: BarChart3 },
-        { name: 'Earnings', path: '/doctor/earnings', icon: IndianRupee },
-        { name: 'Notifications', path: '/doctor/notifications', icon: Bell, badge: unreadCount },
-        { name: 'CareQ AI Assistant', path: '/doctor/ai-assistant', icon: Sparkles, isAi: true }
-      ]
-    },
-    {
-      title: 'ACCOUNT',
-      items: [
-        { name: 'My Profile', path: '/doctor/profile', icon: UserCheck },
-        { name: 'Settings', path: '/doctor/settings', icon: Settings }
-      ]
+  const getInitials = (name?: string): string => {
+    if (!name || !name.trim()) return 'DR';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
-  ];
-
-  const isItemActive = (path: string): boolean => {
-    if (path === '/doctor/dashboard') {
-      return location.pathname === '/doctor/dashboard' || location.pathname === '/doctor';
-    }
-    return location.pathname.startsWith(path);
+    return parts[0].slice(0, 2).toUpperCase();
   };
 
-  const sidebarContent = (
-    <div className="flex flex-col h-full bg-white border-r border-slate-200 select-none">
-      {/* Brand Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 min-h-[72px]">
-        {!collapsed ? (
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <CareQLogo size="sm" clickable={false} />
+  const isRouteActive = (itemPath: string) => {
+    if (itemPath === '/doctor/dashboard') {
+      return (
+        location.pathname === '/doctor/dashboard' ||
+        location.pathname === '/doctor' ||
+        location.pathname === '/doctor/'
+      );
+    }
+    return location.pathname.startsWith(itemPath);
+  };
+
+  const doctorNavItems: NavItem[] = [
+    { name: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
+    { name: 'Appointments', path: '/doctor/appointments', icon: Calendar },
+    { name: 'My Patients', path: '/doctor/patients', icon: Users },
+    { name: 'Consultations', path: '/doctor/consultations', icon: Video },
+    { name: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
+    { name: 'Medical Records', path: '/doctor/medical-records', icon: FileText },
+    { name: 'Schedule', path: '/doctor/schedule', icon: Clock },
+    { name: 'Analytics', path: '/doctor/analytics', icon: BarChart3 },
+    { name: 'Earnings', path: '/doctor/earnings', icon: IndianRupee },
+    { name: 'QAI Assistant', path: '/doctor/ai-assistant', icon: Sparkles, isAi: true }
+  ];
+
+  const renderSidebarContent = (collapsedState: boolean, isMobile: boolean) => (
+    <div className="relative flex h-full flex-col bg-white text-slate-800 w-full select-none text-xs">
+      {/* Brand & Toggle Header */}
+      {collapsedState ? (
+        <div className="flex h-14 items-center justify-center border-b border-slate-100 flex-shrink-0 px-2">
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+          >
+            <PanelLeft className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+      ) : (
+        <div className="flex h-14 items-center justify-between px-3.5 border-b border-slate-100 flex-shrink-0">
+          <NavLink
+            to="/doctor/dashboard"
+            onClick={isMobile ? onCloseMobile : undefined}
+            className="flex items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0"
+            aria-label="CareQ Doctor Portal"
+          >
+            {/* Compact Logo Mark */}
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-600 via-teal-500 to-sky-600 shadow-xs text-white flex-shrink-0">
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 32 32"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect x="7" y="13.5" width="18" height="5" rx="2.5" fill="#ffffff" />
+                <rect x="13.5" y="7" width="5" height="18" rx="2.5" fill="#ffffff" />
+                <path
+                  d="M7 16h4l2-3 2.5 6 2-4 1.5 1h6"
+                  stroke="#0d9488"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="23" cy="8" r="2.2" fill="#38bdf8" />
+                <circle cx="23" cy="8" r="1.1" fill="#ffffff" />
+              </svg>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                Doctor Portal
-              </span>
-              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                Smarter Healthcare
-              </span>
+          </NavLink>
+
+          <div className="flex items-center gap-1">
+            {/* PanelLeft Toggle Button */}
+            <button
+              type="button"
+              onClick={isMobile ? onCloseMobile : handleToggle}
+              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+              title={isMobile ? 'Close sidebar' : 'Collapse sidebar'}
+              aria-label="Toggle sidebar"
+            >
+              <PanelLeft className="h-4 w-4" strokeWidth={2} />
+            </button>
+
+            {/* Mobile close button */}
+            {isMobile && (
+              <button
+                type="button"
+                onClick={onCloseMobile}
+                className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+                aria-label="Close navigation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Area */}
+      <div
+        className={`flex-1 overflow-y-auto overflow-x-hidden ${
+          collapsedState ? 'px-2 py-3 space-y-1' : 'px-2.5 py-3 space-y-1'
+        }`}
+      >
+        <nav className="space-y-0.5">
+          {doctorNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isRouteActive(item.path);
+
+            return collapsedState ? (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={isMobile ? onCloseMobile : undefined}
+                title={item.name}
+                className={`relative flex items-center justify-center w-full h-9 rounded-lg transition-colors duration-150 select-none ${
+                  active
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+              >
+                <Icon
+                  size={18}
+                  className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
+                    active ? 'text-white' : 'text-slate-400 hover:text-slate-700'
+                  }`}
+                />
+                {item.isAi && !active && (
+                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
+                )}
+              </NavLink>
+            ) : (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={isMobile ? onCloseMobile : undefined}
+                className={`group flex items-center justify-between h-9 px-3 rounded-lg transition-colors duration-150 select-none ${
+                  active
+                    ? 'bg-teal-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon
+                    size={18}
+                    className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
+                      active
+                        ? 'text-white'
+                        : item.isAi
+                        ? 'text-teal-600'
+                        : 'text-slate-400 group-hover:text-slate-600'
+                    }`}
+                  />
+                  <span
+                    className={`truncate text-[13px] font-medium leading-none ${
+                      active ? 'text-white font-semibold' : 'text-slate-700 group-hover:text-slate-900'
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                </div>
+
+                {item.isAi && !active && (
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse flex-shrink-0 ml-2" />
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Bottom User Profile Section */}
+      <div className="relative p-2 border-t border-slate-200/80 bg-white mt-auto flex-shrink-0">
+        {/* Invisible Backdrop for click-outside */}
+        {profileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-transparent cursor-default"
+            onClick={() => setProfileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Profile Popover Menu */}
+        {profileMenuOpen && (
+          <div
+            className={`absolute z-50 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 transition-all duration-150 animate-in fade-in slide-in-from-bottom-2 ${
+              collapsedState
+                ? 'bottom-2 left-[62px] w-48'
+                : 'bottom-[calc(100%+8px)] left-2 right-2'
+            }`}
+          >
+            {/* Doctor Info Header */}
+            <div className="px-2.5 py-2 border-b border-slate-100">
+              <p className="text-xs font-bold text-slate-900 truncate leading-tight">
+                {user?.name || 'Dr. Evelyn Reed'}
+              </p>
+              <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                {user?.email || 'doctor@careq.ai'}
+              </p>
             </div>
+
+            {/* Menu Links */}
+            <div className="py-1 space-y-0.5">
+              <NavLink
+                to="/doctor/profile"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  if (isMobile && onCloseMobile) onCloseMobile();
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-teal-50 text-teal-700 font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                  }`
+                }
+              >
+                <User className="h-3.5 w-3.5 text-teal-600" />
+                <span>My Profile</span>
+              </NavLink>
+
+              <NavLink
+                to="/doctor/settings"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  if (isMobile && onCloseMobile) onCloseMobile();
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-teal-50 text-teal-700 font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                  }`
+                }
+              >
+                <Settings className="h-3.5 w-3.5 text-slate-500" />
+                <span>Settings</span>
+              </NavLink>
+
+              <button
+                type="button"
+                onClick={() => toggleTheme()}
+                className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  {isDark ? (
+                    <Sun className="h-3.5 w-3.5 text-amber-500" />
+                  ) : (
+                    <Moon className="h-3.5 w-3.5 text-slate-500" />
+                  )}
+                  <span>{isDark ? 'Light Mode' : 'Night Mode'}</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  {isDark ? 'Dark' : 'Light'}
+                </span>
+              </button>
+            </div>
+
+            {/* Sign Out Action */}
+            <div className="border-t border-slate-100 pt-1 mt-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5 text-rose-500" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Trigger Button */}
+        {collapsedState ? (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((prev) => !prev)}
+              title={user?.name || 'Doctor'}
+              aria-expanded={profileMenuOpen}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                profileMenuOpen
+                  ? 'ring-2 ring-teal-500 bg-teal-50'
+                  : 'hover:ring-2 hover:ring-slate-200'
+              }`}
+            >
+              {user?.avatarUrl && !avatarError ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user?.name || 'Doctor'}
+                  onError={() => setAvatarError(true)}
+                  className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white font-bold text-xs tracking-wider flex items-center justify-center shadow-xs">
+                  {getInitials(user?.name)}
+                </div>
+              )}
+            </button>
           </div>
         ) : (
-          <div className="mx-auto">
-            <CareQLogo size="sm" clickable={false} />
-          </div>
-        )}
-
-        <div className="flex items-center gap-1">
-          {/* Desktop Collapse Toggle */}
-          {onToggleCollapse && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-              aria-label={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            >
-              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-            </button>
-          )}
-
-          {/* Mobile Drawer Close */}
-          {onCloseMobile && (
-            <button
-              type="button"
-              onClick={onCloseMobile}
-              className="lg:hidden p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-              aria-label="Close Sidebar"
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Navigation Sections */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 scrollbar-thin">
-        {navSections.map((section) => (
-          <div key={section.title} className="space-y-1">
-            {!collapsed ? (
-              <div className="px-3 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                {section.title}
-              </div>
+          <button
+            type="button"
+            onClick={() => setProfileMenuOpen((prev) => !prev)}
+            aria-expanded={profileMenuOpen}
+            className={`w-full flex items-center gap-2 p-1.5 rounded-xl border text-left transition-all cursor-pointer ${
+              profileMenuOpen
+                ? 'bg-teal-50/80 border-teal-300 ring-2 ring-teal-500/20'
+                : 'bg-slate-50/90 border-slate-200/80 hover:bg-slate-100 hover:border-slate-300'
+            }`}
+          >
+            {user?.avatarUrl && !avatarError ? (
+              <img
+                src={user.avatarUrl}
+                alt={user?.name || 'Doctor'}
+                onError={() => setAvatarError(true)}
+                className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 flex-shrink-0 shadow-xs"
+              />
             ) : (
-              <div className="w-6 h-0.5 bg-slate-200 mx-auto my-2 rounded-full" />
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white font-bold text-xs tracking-wider flex items-center justify-center flex-shrink-0 shadow-xs">
+                {getInitials(user?.name)}
+              </div>
             )}
-
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const active = isItemActive(item.path);
-                const IconComponent = item.icon;
-
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => {
-                      if (onCloseMobile) onCloseMobile();
-                    }}
-                    className={`group relative flex items-center ${
-                      collapsed ? 'justify-center px-2' : 'px-4'
-                    } py-3 rounded-xl transition-all duration-150 min-h-[48px] ${
-                      active
-                        ? 'bg-teal-600 text-white font-semibold shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
-                    }`}
-                    title={collapsed ? item.name : undefined}
-                  >
-                    <IconComponent
-                      size={22}
-                      className={`flex-shrink-0 transition-transform ${
-                        active
-                          ? 'text-white'
-                          : item.isAi
-                          ? 'text-teal-600 group-hover:scale-110'
-                          : 'text-slate-500 group-hover:text-slate-800'
-                      }`}
-                    />
-
-                    {!collapsed && (
-                      <span className="ml-3 text-[16px] truncate flex-1">
-                        {item.name}
-                      </span>
-                    )}
-
-                    {!collapsed && item.isAi && (
-                      <span
-                        className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded tracking-wider ${
-                          active
-                            ? 'bg-white/20 text-white'
-                            : 'bg-teal-100 text-teal-800 border border-teal-200'
-                        }`}
-                      >
-                        AI
-                      </span>
-                    )}
-
-                    {!collapsed && Boolean(item.badge && item.badge > 0) && (
-                      <span
-                        className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                          active
-                            ? 'bg-white text-teal-700'
-                            : 'bg-teal-600 text-white'
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-
-                    {collapsed && Boolean(item.badge && item.badge > 0) && (
-                      <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-teal-600 border-2 border-white rounded-full" />
-                    )}
-                  </NavLink>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Doctor User Footer & Sign Out */}
-      <div className="p-4 border-t border-slate-100 bg-slate-50/60 mt-auto">
-        {!collapsed && (
-          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-xl bg-white border border-slate-200/80 shadow-xs">
-            <img
-              src={
-                user?.avatarUrl ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Dr. Doctor')}&background=0d9488&color=fff`
-              }
-              alt={user?.name}
-              className="w-10 h-10 rounded-full object-cover border border-teal-200 flex-shrink-0"
-            />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-slate-800 truncate">
-                {user?.name || 'Doctor'}
-              </div>
-              <div className="text-[11px] text-teal-600 font-semibold truncate">
+              <span className="text-xs font-bold text-slate-900 truncate block leading-tight">
+                {user?.name || 'Dr. Evelyn Reed'}
+              </span>
+              <span className="text-[10px] text-teal-600 font-semibold truncate block leading-tight mt-0.5">
                 {user?.doctorProfile?.specialization || 'Physician'}
-              </div>
+              </span>
             </div>
-          </div>
+          </button>
         )}
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className={`flex items-center ${
-            collapsed ? 'justify-center px-2' : 'px-4'
-          } py-3 w-full rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors font-medium min-h-[48px] cursor-pointer`}
-          title={collapsed ? 'Sign Out' : undefined}
-        >
-          <LogOut size={20} className="flex-shrink-0" />
-          {!collapsed && <span className="ml-3 text-[16px]">Sign Out</span>}
-        </button>
       </div>
     </div>
   );
 
   return (
     <>
-      {/* Desktop Sticky Sidebar */}
+      {/* Desktop Fixed Locked Sidebar - In-flow spacer placeholder to reserve width */}
+      <div
+        className={`hidden lg:block flex-shrink-0 transition-all duration-200 ease-in-out ${
+          isCollapsed
+            ? 'w-[58px] min-w-[58px] max-w-[58px]'
+            : 'w-[190px] min-w-[190px] max-w-[190px]'
+        }`}
+        aria-hidden="true"
+      />
+
+      {/* Desktop Fixed Locked Sidebar - 100% locked to viewport, never scrolls away */}
       <aside
-        className={`hidden lg:flex flex-col h-screen min-h-screen sticky top-0 z-30 transition-all duration-300 ${
-          collapsed ? 'w-[80px]' : 'w-[280px]'
+        className={`hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r border-slate-200/80 bg-white z-30 select-none transition-all duration-200 ease-in-out ${
+          isCollapsed
+            ? 'w-[58px] min-w-[58px] max-w-[58px]'
+            : 'w-[190px] min-w-[190px] max-w-[190px]'
         }`}
       >
-        {sidebarContent}
+        {renderSidebarContent(isCollapsed, false)}
       </aside>
 
-      {/* Mobile Drawer Backdrop */}
+      {/* Mobile Drawer Backdrop and Slide-over */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
-          onClick={onCloseMobile}
-          aria-hidden="true"
-        />
-      )}
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200"
+            onClick={onCloseMobile}
+            aria-hidden="true"
+          />
 
-      {/* Mobile Offcanvas Drawer */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[285px] max-w-[85vw] transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {sidebarContent}
-      </div>
+          {/* Slide-over panel */}
+          <div className="fixed inset-y-0 left-0 w-[190px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col h-full overflow-hidden">
+            {renderSidebarContent(false, true)}
+          </div>
+        </div>
+      )}
     </>
   );
 };

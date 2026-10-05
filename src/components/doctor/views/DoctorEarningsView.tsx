@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import {
-  IndianRupee,
-  Calendar,
   CheckCircle2,
   Clock,
   RotateCcw,
-  Download,
-  Filter,
-  ArrowUpRight,
-  TrendingUp,
-  CreditCard
+  Download
 } from 'lucide-react';
 import type { DoctorEarnings } from '../../../types/doctor';
 
