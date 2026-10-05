@@ -150,7 +150,7 @@ export const CareQAIAssistantCard: React.FC<CareQAIAssistantCardProps> = ({
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Suggested Actions
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {suggestedActions.map((act) => {
               const Icon = act.icon;
               return (
@@ -158,7 +158,7 @@ export const CareQAIAssistantCard: React.FC<CareQAIAssistantCardProps> = ({
                   key={act.label}
                   type="button"
                   onClick={() => handleActionClick(act)}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-white/15 hover:border-teal-400/40 active:scale-95 transition-all text-left group"
+                  className="flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/15 hover:border-teal-400/40 active:scale-95 transition-all text-left group"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <Icon className="h-3.5 w-3.5 text-teal-400 flex-shrink-0" />
@@ -172,13 +172,13 @@ export const CareQAIAssistantCard: React.FC<CareQAIAssistantCardProps> = ({
         </div>
 
         {/* IMPORTANT MEDICAL SAFETY DISCLAIMER */}
-        <div className="mt-6 flex items-start gap-3 rounded-2xl bg-amber-500/10 border border-amber-400/30 p-3.5 text-amber-200 backdrop-blur-xs">
-          <ShieldAlert className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="text-[11px] leading-relaxed">
+        <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-400/25 p-2.5 text-amber-200/90 backdrop-blur-xs">
+          <ShieldAlert className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="text-[10px] leading-relaxed">
             <span className="font-bold uppercase tracking-wider text-amber-300">
-              Clinical Safety Notice:{' '}
+              Notice:{' '}
             </span>
-            The CareQ AI Assistant provides educational guidance and is not a replacement for a licensed healthcare provider. CareQ AI does not make autonomous clinical diagnoses. If you have an urgent medical emergency, immediately contact local emergency services (911) or visit an emergency room.
+            Educational guidance only. Not a substitute for professional medical care. In an emergency, call 911 immediately.
           </div>
         </div>
       </div>

@@ -389,8 +389,6 @@ export const PatientDashboard: React.FC = () => {
         <PatientHeader
           pageTitle={pageTitle}
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
-          onToggleDesktopSidebar={() => setSidebarCollapsed((prev) => !prev)}
-          isSidebarCollapsed={sidebarCollapsed}
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationRead}
           onMarkAllNotificationsAsRead={handleMarkAllNotificationsRead}

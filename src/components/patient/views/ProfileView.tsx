@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User,
   Mail,
@@ -8,8 +9,10 @@ import {
   Shield,
   Edit,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 import type { User as AuthUser } from '../../../types/auth';
 
 interface ProfileViewProps {
@@ -21,6 +24,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   user,
   onEditProfile
 }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    } finally {
+      navigate('/auth/login', { replace: true });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -33,14 +49,25 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onEditProfile}
-          className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all self-start sm:self-auto"
-        >
-          <Edit className="h-4 w-4" />
-          <span>Edit Profile</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={onEditProfile}
+            className="inline-flex items-center gap-2 rounded-2xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-700 active:scale-95 transition-all cursor-pointer"
+          >
+            <Edit className="h-4 w-4" />
+            <span>Edit Profile</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 hover:border-rose-300 active:scale-95 transition-all cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
 
       {/* Profile Overview Card */}
@@ -152,6 +179,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Account Session & Security Card */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-bold text-slate-900">Account Session & Security</h4>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Signed in as <span className="font-semibold text-slate-700">{user?.email || 'patient@careq.ai'}</span> &bull; Status: <span className="text-emerald-600 font-semibold">Active Session</span>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 hover:border-rose-300 active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Log Out of CareQ</span>
+        </button>
       </div>
     </div>
   );

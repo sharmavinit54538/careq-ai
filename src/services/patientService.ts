@@ -238,9 +238,79 @@ class PatientService {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  private ensurePatientInitialized(patientId: string): void {
+    let modified = false;
+
+    if (!this.store.appointments[patientId] || this.store.appointments[patientId].length === 0) {
+      const templateApts = INITIAL_STORE.appointments['usr_pat_001'] || [];
+      this.store.appointments[patientId] = templateApts.map((a, i) => ({
+        ...a,
+        id: `apt_${patientId}_${i}`,
+        patientId
+      }));
+      modified = true;
+    }
+
+    if (!this.store.healthVitals[patientId]) {
+      const templateVitals = INITIAL_STORE.healthVitals['usr_pat_001'];
+      if (templateVitals) {
+        this.store.healthVitals[patientId] = {
+          ...templateVitals,
+          patientId
+        };
+        modified = true;
+      }
+    }
+
+    if (!this.store.prescriptions[patientId] || this.store.prescriptions[patientId].length === 0) {
+      const templateRx = INITIAL_STORE.prescriptions['usr_pat_001'] || [];
+      this.store.prescriptions[patientId] = templateRx.map((rx, i) => ({
+        ...rx,
+        id: `rx_${patientId}_${i}`,
+        patientId
+      }));
+      modified = true;
+    }
+
+    if (!this.store.medicalRecords[patientId] || this.store.medicalRecords[patientId].length === 0) {
+      const templateRecs = INITIAL_STORE.medicalRecords['usr_pat_001'] || [];
+      this.store.medicalRecords[patientId] = templateRecs.map((rec, i) => ({
+        ...rec,
+        id: `rec_${patientId}_${i}`,
+        patientId
+      }));
+      modified = true;
+    }
+
+    if (!this.store.activities[patientId] || this.store.activities[patientId].length === 0) {
+      const templateActs = INITIAL_STORE.activities['usr_pat_001'] || [];
+      this.store.activities[patientId] = templateActs.map((act, i) => ({
+        ...act,
+        id: `act_${patientId}_${i}`,
+        patientId
+      }));
+      modified = true;
+    }
+
+    if (!this.store.notifications[patientId] || this.store.notifications[patientId].length === 0) {
+      const templateNotifs = INITIAL_STORE.notifications['usr_pat_001'] || [];
+      this.store.notifications[patientId] = templateNotifs.map((notif, i) => ({
+        ...notif,
+        id: `notif_${patientId}_${i}`,
+        patientId
+      }));
+      modified = true;
+    }
+
+    if (modified) {
+      this.persistStore(this.store);
+    }
+  }
+
   // --- Aggregate Dashboard Loader ---
   async getDashboardData(patientId: string): Promise<PatientDashboardData> {
     await this.delay(350);
+    this.ensurePatientInitialized(patientId);
 
     const appointments = this.store.appointments[patientId] || [];
     const now = new Date();

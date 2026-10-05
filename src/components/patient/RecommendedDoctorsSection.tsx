@@ -85,7 +85,7 @@ export const RecommendedDoctorsSection: React.FC<RecommendedDoctorsSectionProps>
 
       {/* Doctors Grid */}
       {!isLoading && !isError && doctors.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3.5">
           {doctors.map((doc) => (
             <div
               key={doc.id}

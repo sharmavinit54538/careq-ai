@@ -85,13 +85,13 @@ export const MedicalRecordsSection: React.FC<MedicalRecordsSectionProps> = ({
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 scrollbar-none flex-nowrap">
         {categories.map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => setSelectedCategory(cat)}
-            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+            className={`whitespace-nowrap flex-shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
               selectedCategory === cat
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

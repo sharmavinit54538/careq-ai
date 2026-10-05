@@ -14,8 +14,6 @@ import type { PatientNotification } from '../../types/patient';
 interface PatientHeaderProps {
   pageTitle?: string;
   onOpenMobileSidebar?: () => void;
-  onToggleDesktopSidebar?: () => void;
-  isSidebarCollapsed?: boolean;
   notifications?: PatientNotification[];
   onMarkNotificationAsRead?: (id: string) => void;
   onMarkAllNotificationsAsRead?: () => void;
@@ -24,8 +22,6 @@ interface PatientHeaderProps {
 export const PatientHeader: React.FC<PatientHeaderProps> = ({
   pageTitle = 'Dashboard',
   onOpenMobileSidebar,
-  onToggleDesktopSidebar,
-  isSidebarCollapsed = false,
   notifications = [],
   onMarkNotificationAsRead,
   onMarkAllNotificationsAsRead
@@ -58,17 +54,6 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
           <Menu className="h-6 w-6" />
         </button>
 
-        {onToggleDesktopSidebar && (
-          <button
-            type="button"
-            onClick={onToggleDesktopSidebar}
-            className="hidden lg:inline-flex items-center justify-center p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
-            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-label="Toggle sidebar"
-          >
-            <PanelLeft className="h-5 w-5" strokeWidth={2} />
-          </button>
-        )}
 
         <div>
           <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">

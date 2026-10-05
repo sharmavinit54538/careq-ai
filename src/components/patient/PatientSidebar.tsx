@@ -46,6 +46,12 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
   const location = useLocation();
   const [avatarError, setAvatarError] = useState(false);
   const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Close profile menu whenever location changes
+  useEffect(() => {
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
 
   const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
 
@@ -111,38 +117,33 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     { name: 'Notifications', path: '/patient/notifications', icon: Bell, badge: unreadCount }
   ];
 
-  const accountNavItems: NavItem[] = [
-    { name: 'My Profile', path: '/patient/profile', icon: User },
-    { name: 'Settings', path: '/patient/settings', icon: Settings }
-  ];
-
   const renderSidebarContent = (collapsedState: boolean, isMobile: boolean) => (
-    <div className="flex h-full flex-col bg-white text-slate-800 overflow-hidden w-full">
-      {/* Brand & Logo Header */}
+    <div className="relative flex h-full flex-col bg-white text-slate-800 w-full select-none text-xs">
+      {/* Brand & Toggle Header */}
       {collapsedState ? (
-        <div className="flex h-[84px] items-center justify-center border-b border-slate-100 flex-shrink-0 px-2">
+        <div className="flex h-14 items-center justify-center border-b border-slate-100 flex-shrink-0 px-2">
           <button
             type="button"
             onClick={handleToggle}
-            className="p-2.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
-            <PanelLeft className="h-5 w-5" strokeWidth={2} />
+            <PanelLeft className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
       ) : (
-        <div className="flex h-[84px] items-center justify-between px-5 border-b border-slate-100 flex-shrink-0">
+        <div className="flex h-14 items-center justify-between px-3.5 border-b border-slate-100 flex-shrink-0">
           <NavLink
             to="/patient/dashboard"
             onClick={isMobile ? onCloseMobile : undefined}
-            className="flex items-center gap-3.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0"
-            aria-label="CareQ AI Patient Portal"
+            className="flex items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0"
+            aria-label="CareQ Patient Portal"
           >
-            {/* Logo Mark: Approx 44x44, rounded-xl, CareQ AI gradient cross */}
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 via-teal-500 to-sky-600 shadow-md shadow-teal-600/20 text-white flex-shrink-0">
+            {/* Compact Logo Mark */}
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-600 via-teal-500 to-sky-600 shadow-xs text-white flex-shrink-0">
               <svg
-                className="h-6 w-6"
+                className="h-4 w-4"
                 viewBox="0 0 32 32"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -160,20 +161,6 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
                 <circle cx="23" cy="8" r="1.1" fill="#ffffff" />
               </svg>
             </div>
-
-            <div className="flex flex-col min-w-0 justify-center">
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="font-heading font-extrabold text-xl tracking-tight text-slate-900 leading-none">
-                  Care<span className="text-teal-600">Q</span>
-                </span>
-                <span className="inline-flex items-center rounded-md bg-gradient-to-r from-teal-600 to-sky-600 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-2xs leading-none">
-                  AI
-                </span>
-              </div>
-              <p className="text-xs font-medium text-slate-500 tracking-tight mt-1.5 leading-none">
-                Patient Portal
-              </p>
-            </div>
           </NavLink>
 
           <div className="flex items-center gap-1">
@@ -181,11 +168,11 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
             <button
               type="button"
               onClick={isMobile ? onCloseMobile : handleToggle}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
               title={isMobile ? 'Close sidebar' : 'Collapse sidebar'}
               aria-label="Toggle sidebar"
             >
-              <PanelLeft className="h-5 w-5" strokeWidth={2} />
+              <PanelLeft className="h-4 w-4" strokeWidth={2} />
             </button>
 
             {/* Mobile close button */}
@@ -193,26 +180,26 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="lg:hidden p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
+                className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer"
                 aria-label="Close navigation"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
         </div>
       )}
 
-      {/* Scrollable Navigation Area */}
+      {/* Navigation Area */}
       <div
         className={`flex-1 overflow-y-auto overflow-x-hidden ${
-          collapsedState ? 'px-2.5 py-5 space-y-6' : 'px-5 py-5'
+          collapsedState ? 'px-2 py-3 space-y-4' : 'px-2.5 py-3 space-y-1'
         }`}
       >
         {collapsedState ? (
           /* Collapsed Icons Only */
           <>
-            <nav className="space-y-2">
+            <nav className="space-y-1">
               {careManagementNavItems.map((item) => {
                 const Icon = item.icon;
                 const active = isRouteActive(item.path);
@@ -222,57 +209,28 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
                     to={item.path}
                     onClick={isMobile ? onCloseMobile : undefined}
                     title={item.name}
-                    className={`relative flex items-center justify-center w-full min-h-[48px] p-3 rounded-xl transition-colors duration-150 select-none ${
+                    className={`relative flex items-center justify-center w-full h-9 rounded-lg transition-colors duration-150 select-none ${
                       active
                         ? 'bg-teal-600 text-white shadow-xs'
-                        : 'text-slate-500 hover:bg-teal-50/80 hover:text-teal-700'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                     } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   >
                     <Icon
-                      size={24}
-                      className={`w-6 h-6 flex-shrink-0 transition-colors ${
+                      size={18}
+                      className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
                         active
                           ? 'text-white'
                           : item.isAi
                           ? 'text-teal-600'
-                          : 'text-slate-400 hover:text-teal-600'
+                          : 'text-slate-400 hover:text-slate-700'
                       }`}
                     />
                     {item.isAi && !active && (
-                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                      <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
                     )}
                     {typeof item.badge === 'number' && item.badge > 0 && (
-                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                      <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-rose-500 ring-1 ring-white" />
                     )}
-                  </NavLink>
-                );
-              })}
-            </nav>
-
-            <div className="border-t border-slate-100 mx-2" />
-
-            <nav className="space-y-2">
-              {accountNavItems.map((item) => {
-                const Icon = item.icon;
-                const active = isRouteActive(item.path);
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={isMobile ? onCloseMobile : undefined}
-                    title={item.name}
-                    className={`flex items-center justify-center w-full min-h-[48px] p-3 rounded-xl transition-colors duration-150 select-none ${
-                      active
-                        ? 'bg-teal-600 text-white shadow-xs'
-                        : 'text-slate-500 hover:bg-teal-50/80 hover:text-teal-700'
-                    } focus:outline-none focus:ring-2 focus:ring-teal-500`}
-                  >
-                    <Icon
-                      size={24}
-                      className={`w-6 h-6 flex-shrink-0 transition-colors ${
-                        active ? 'text-white' : 'text-slate-400 hover:text-teal-600'
-                      }`}
-                    />
                   </NavLink>
                 );
               })}
@@ -281,172 +239,213 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
         ) : (
           /* Expanded Full Navigation */
           <div>
-            {/* Section 1: CARE MANAGEMENT */}
-            <div>
-              <div className="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-4 select-none">
-                CARE MANAGEMENT
-              </div>
+            <nav className="space-y-1">
+              {careManagementNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isRouteActive(item.path);
 
-              <nav className="space-y-2">
-                {careManagementNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(item.path);
-
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      onClick={isMobile ? onCloseMobile : undefined}
-                      className={`group flex items-center justify-between min-h-[48px] px-4 py-3 rounded-xl transition-all duration-150 select-none ${
-                        active
-                          ? 'bg-teal-600 text-white font-semibold shadow-xs'
-                          : 'text-slate-600 hover:bg-teal-50/70 hover:text-teal-900'
-                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <Icon
-                          size={24}
-                          className={`w-6 h-6 flex-shrink-0 transition-colors ${
-                            active
-                              ? 'text-white'
-                              : item.isAi
-                              ? 'text-teal-600'
-                              : 'text-slate-400 group-hover:text-teal-600'
-                          }`}
-                        />
-                        <span className="truncate text-[15px] font-medium leading-6">
-                          {item.name}
-                        </span>
-                      </div>
-
-                      {item.isAi && !active && (
-                        <span className="flex h-2 w-2 rounded-full bg-teal-500 animate-pulse flex-shrink-0 ml-2" />
-                      )}
-
-                      {typeof item.badge === 'number' && item.badge > 0 && (
-                        <span
-                          className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold flex-shrink-0 ml-2 ${
-                            active
-                              ? 'bg-white text-teal-700'
-                              : 'bg-rose-100 text-rose-700'
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* 32px gap between sections */}
-            <div className="mt-8">
-              {/* Section 2: ACCOUNT & PREFERENCES */}
-              <div className="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-4 select-none">
-                ACCOUNT & PREFERENCES
-              </div>
-
-              <nav className="space-y-2">
-                {accountNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(item.path);
-
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      onClick={isMobile ? onCloseMobile : undefined}
-                      className={`group flex items-center gap-4 min-h-[48px] px-4 py-3 rounded-xl transition-all duration-150 select-none ${
-                        active
-                          ? 'bg-teal-600 text-white font-semibold shadow-xs'
-                          : 'text-slate-600 hover:bg-teal-50/70 hover:text-teal-900'
-                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
-                    >
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={isMobile ? onCloseMobile : undefined}
+                    className={`group flex items-center justify-between h-9 px-3 rounded-lg transition-colors duration-150 select-none ${
+                      active
+                        ? 'bg-teal-600 text-white font-semibold shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    } focus:outline-none focus:ring-2 focus:ring-teal-500`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
                       <Icon
-                        size={24}
-                        className={`w-6 h-6 flex-shrink-0 transition-colors ${
+                        size={18}
+                        className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
                           active
                             ? 'text-white'
-                            : 'text-slate-400 group-hover:text-teal-600'
+                            : item.isAi
+                            ? 'text-teal-600'
+                            : 'text-slate-400 group-hover:text-slate-600'
                         }`}
                       />
-                      <span className="truncate text-[15px] font-medium leading-6">
+                      <span
+                        className={`truncate text-[13px] font-medium leading-none ${
+                          active ? 'text-white font-semibold' : 'text-slate-700 group-hover:text-slate-900'
+                        }`}
+                      >
                         {item.name}
                       </span>
-                    </NavLink>
-                  );
-                })}
-              </nav>
-            </div>
+                    </div>
+
+                    {item.isAi && !active && (
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse flex-shrink-0 ml-2" />
+                    )}
+
+                    {typeof item.badge === 'number' && item.badge > 0 && (
+                      <span
+                        className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[10px] font-bold flex-shrink-0 ml-2 ${
+                          active
+                            ? 'bg-white text-teal-700'
+                            : 'bg-rose-100 text-rose-700'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </nav>
           </div>
         )}
       </div>
 
       {/* Bottom User Profile Section */}
-      {collapsedState ? (
-        <div className="p-3 border-t border-slate-100 bg-white mt-auto flex-shrink-0 flex flex-col items-center gap-3">
-          {user?.avatarUrl && !avatarError ? (
-            <img
-              src={user.avatarUrl}
-              alt={user?.name || 'Patient'}
-              onError={() => setAvatarError(true)}
-              title={user?.name || 'Patient User'}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-teal-500/20 flex-shrink-0"
-            />
-          ) : (
-            <div
-              title={user?.name || 'Patient User'}
-              className="w-10 h-10 rounded-full bg-teal-600 text-white font-bold text-xs tracking-wider flex items-center justify-center flex-shrink-0 shadow-xs ring-2 ring-teal-500/20"
-            >
-              {getInitials(user?.name)}
-            </div>
-          )}
+      <div className="relative p-2 border-t border-slate-200/80 bg-white mt-auto flex-shrink-0">
+        {/* Invisible Backdrop for click-outside */}
+        {profileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-transparent cursor-default"
+            onClick={() => setProfileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
+        {/* Profile Popover Menu */}
+        {profileMenuOpen && (
+          <div
+            className={`absolute z-50 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 transition-all duration-150 animate-in fade-in slide-in-from-bottom-2 ${
+              collapsedState
+                ? 'bottom-2 left-[62px] w-48'
+                : 'bottom-[calc(100%+8px)] left-2 right-2'
+            }`}
+          >
+            {/* User Info Header */}
+            <div className="px-2.5 py-2 border-b border-slate-100">
+              <p className="text-xs font-bold text-slate-900 truncate leading-tight">
+                {user?.name || 'vinit sharma'}
+              </p>
+              <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                {user?.email || 'patient@careq.ai'}
+              </p>
+            </div>
+
+            {/* Menu Links */}
+            <div className="py-1 space-y-0.5">
+              <NavLink
+                to="/patient/profile"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  if (isMobile && onCloseMobile) onCloseMobile();
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-teal-50 text-teal-700 font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                  }`
+                }
+              >
+                <User className="h-3.5 w-3.5 text-teal-600" />
+                <span>My Profile</span>
+              </NavLink>
+
+              <NavLink
+                to="/patient/settings"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  if (isMobile && onCloseMobile) onCloseMobile();
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-teal-50 text-teal-700 font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                  }`
+                }
+              >
+                <Settings className="h-3.5 w-3.5 text-slate-500" />
+                <span>Settings</span>
+              </NavLink>
+            </div>
+
+            {/* Sign Out Action */}
+            <div className="border-t border-slate-100 pt-1 mt-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5 text-rose-500" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Trigger Button */}
+        {collapsedState ? (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((prev) => !prev)}
+              title={user?.name || 'vinit sharma'}
+              aria-expanded={profileMenuOpen}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                profileMenuOpen
+                  ? 'ring-2 ring-teal-500 bg-teal-50'
+                  : 'hover:ring-2 hover:ring-slate-200'
+              }`}
+            >
+              {user?.avatarUrl && !avatarError ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user?.name || 'Patient'}
+                  onError={() => setAvatarError(true)}
+                  className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white font-bold text-xs tracking-wider flex items-center justify-center shadow-xs">
+                  {getInitials(user?.name)}
+                </div>
+              )}
+            </button>
+          </div>
+        ) : (
           <button
             type="button"
-            onClick={handleLogout}
-            title="Sign Out"
-            className="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors cursor-pointer"
+            onClick={() => setProfileMenuOpen((prev) => !prev)}
+            aria-expanded={profileMenuOpen}
+            className={`w-full flex items-center gap-2 p-1.5 rounded-xl border text-left transition-all cursor-pointer ${
+              profileMenuOpen
+                ? 'bg-teal-50/80 border-teal-300 ring-2 ring-teal-500/20'
+                : 'bg-slate-50/90 border-slate-200/80 hover:bg-slate-100 hover:border-slate-300'
+            }`}
           >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <div className="p-5 border-t border-slate-100 bg-white mt-auto flex-shrink-0">
-          <div className="flex items-center gap-3.5 mb-4">
             {user?.avatarUrl && !avatarError ? (
               <img
                 src={user.avatarUrl}
                 alt={user?.name || 'Patient'}
                 onError={() => setAvatarError(true)}
-                className="w-11 h-11 rounded-full object-cover ring-2 ring-teal-500/20 flex-shrink-0"
+                className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 flex-shrink-0 shadow-xs"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-teal-600 text-white font-bold text-sm tracking-wider flex items-center justify-center flex-shrink-0 shadow-xs ring-2 ring-teal-500/20">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white font-bold text-xs tracking-wider flex items-center justify-center flex-shrink-0 shadow-xs">
                 {getInitials(user?.name)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-900 truncate leading-tight">
-                {user?.name || 'Patient User'}
-              </p>
-              <p className="text-xs text-slate-500 truncate leading-tight mt-1">
-                {user?.email || 'patient@careq.ai'}
-              </p>
+              <span className="text-xs font-bold text-slate-900 truncate block leading-tight">
+                {user?.name || 'vinit sharma'}
+              </span>
+              <span className="text-[10px] text-slate-500 truncate block leading-tight mt-0.5">
+                Patient Account
+              </span>
             </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 px-3 py-2.5 text-xs font-semibold text-slate-700 shadow-2xs focus:outline-none focus:ring-2 focus:ring-rose-500 transition-colors duration-150 cursor-pointer"
-          >
-            <LogOut className="h-4 w-4 flex-shrink-0" />
-            <span>Sign Out</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 
@@ -454,20 +453,20 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
     <>
       {/* Desktop Fixed Locked Sidebar - In-flow spacer placeholder to reserve width */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block flex-shrink-0 transition-all duration-200 ease-in-out ${
           isCollapsed
-            ? 'w-[80px] min-w-[80px] max-w-[80px]'
-            : 'w-[280px] min-w-[280px] max-w-[280px]'
+            ? 'w-[58px] min-w-[58px] max-w-[58px]'
+            : 'w-[190px] min-w-[190px] max-w-[190px]'
         }`}
         aria-hidden="true"
       />
 
       {/* Desktop Fixed Locked Sidebar - 100% locked to viewport, never scrolls away */}
       <aside
-        className={`hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r border-slate-200/90 bg-white z-30 select-none overflow-hidden transition-all duration-300 ease-in-out ${
+        className={`hidden lg:flex fixed top-0 left-0 h-screen flex-col border-r border-slate-200/80 bg-white z-30 select-none transition-all duration-200 ease-in-out ${
           isCollapsed
-            ? 'w-[80px] min-w-[80px] max-w-[80px]'
-            : 'w-[280px] min-w-[280px] max-w-[280px]'
+            ? 'w-[58px] min-w-[58px] max-w-[58px]'
+            : 'w-[190px] min-w-[190px] max-w-[190px]'
         }`}
       >
         {renderSidebarContent(isCollapsed, false)}
@@ -484,7 +483,7 @@ export const PatientSidebar: React.FC<PatientSidebarProps> = ({
           />
 
           {/* Slide-over panel */}
-          <div className="fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col h-full overflow-hidden">
+          <div className="fixed inset-y-0 left-0 w-[190px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col h-full overflow-hidden">
             {renderSidebarContent(false, true)}
           </div>
         </div>
